@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO Meta Tags -->
+    <title>Made In Heaven | Prendas Personalizadas y Venta al por Mayor</title>
+    <meta name="description" content="Prendas y accesorios personalizados de calidad premium. Especialistas en pedidos al por mayor y detal en Pasto, Nariño, Colombia." />
+    <meta name="keywords" content="prendas personalizadas, venta por mayor, camisetas, hoodies, gorras, personalización, Pasto, Nariño" />
+    <meta name="author" content="Made In Heaven" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Made In Heaven | Prendas Personalizadas" />
+    <meta property="og:description" content="Prendas y accesorios personalizados de calidad premium en Pasto, Nariño." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://madeinheaven.com" />
+    <meta property="og:image" content="/og-image.jpg" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Made In Heaven | Prendas Personalizadas" />
+    <meta name="twitter:description" content="Prendas y accesorios personalizados de calidad premium." />
+    <meta name="twitter:image" content="/twitter-image.jpg" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#08415C" />
+    
+    <!-- Los estilos están en index.css -->
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div class="loading-screen">
+      <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- React App Container -->
+    <div id="root"></div>
+    
+    <!-- Main Script -->
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Script para remover loading cuando la app esté lista -->
+    <script>
+      // Remover loading screen cuando React esté montado
+      window.addEventListener('DOMContentLoaded', function() {
+        // Agregar un pequeño delay para asegurar que React esté completamente cargado
+        setTimeout(function() {
+          document.body.classList.add('app-loaded');
+        }, 100);
+      });
+    </script>
+  </body>
+</html>
