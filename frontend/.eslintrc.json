@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/eslintrc",
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-script-url": "error",
+    "no-alert": "warn",
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "react/no-danger": "error"
+  }
+}

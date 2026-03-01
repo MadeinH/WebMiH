@@ -1,0 +1,102 @@
+'use client'
+
+import { useState } from 'react'
+import { formatCOP } from '@/lib/utils'
+
+interface PriceTableProps {
+  detal_carta: number
+  detal_estandar: number
+  mayoreo_3: number
+  mayoreo_6: number
+  mayoreo_12: number
+}
+
+/** Columnas de la tabla de precios */
+const columnas = [
+  { key: 'detal_carta',    label: '1–2 und (carta)',     rango: [1, 2] },
+  { key: 'detal_estandar', label: '1–2 und (estándar)',  rango: [1, 2] },
+  { key: 'mayoreo_3',      label: '3 und',               rango: [3, 5] },
+  { key: 'mayoreo_6',      label: '6 und',               rango: [6, 11] },
+  { key: 'mayoreo_12',     label: '12+ und',             rango: [12, 999] },
+] as const
+
+/** Tabla de precios por cantidad con resaltado de columna activa */
+export default function PriceTable(precios: PriceTableProps) {
+  const [cantidad, setCantidad] = useState(1)
+
+  /** Determina cuál columna está activa según la cantidad */
+  function getActiveColumn(): string {
+    if (cantidad >= 12) return 'mayoreo_12'
+    if (cantidad >= 6) return 'mayoreo_6'
+    if (cantidad >= 3) return 'mayoreo_3'
+    return 'detal_carta'
+  }
+
+  const activeCol = getActiveColumn()
+
+  return (
+    <div className="space-y-4">
+      {/* Selector de cantidad */}
+      <div className="flex items-center gap-3">
+        <label htmlFor="cantidad" className="text-sm font-medium text-heaven-muted">
+          Cantidad:
+        </label>
+        <input
+          id="cantidad"
+          type="number"
+          min={1}
+          max={999}
+          value={cantidad}
+          onChange={(e) => setCantidad(Math.max(1, Number(e.target.value)))}
+          className="w-20 rounded-lg border border-heaven-divider bg-heaven-bg-dark px-3 py-2 text-center text-heaven-text focus:border-heaven-lilac focus:outline-none focus:ring-1 focus:ring-heaven-lilac"
+        />
+      </div>
+
+      {/* Tabla */}
+      <div className="overflow-x-auto rounded-xl border border-heaven-divider">
+        <table className="w-full text-center text-sm">
+          <thead>
+            <tr className="border-b border-heaven-divider bg-heaven-bg-card">
+              {columnas.map((col) => (
+                <th
+                  key={col.key}
+                  className={`px-4 py-3 font-semibold transition-colors ${
+                    activeCol === col.key
+                      ? 'bg-heaven-lilac/20 text-heaven-lilac'
+                      : 'text-heaven-muted'
+                  }`}
+                >
+                  {col.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              {columnas.map((col) => {
+                const valor = precios[col.key]
+                return (
+                  <td
+                    key={col.key}
+                    className={`px-4 py-4 font-display text-lg transition-colors ${
+                      activeCol === col.key
+                        ? 'bg-heaven-lilac/10 text-heaven-text'
+                        : 'text-heaven-muted'
+                    }`}
+                  >
+                    {valor ? formatCOP(valor) : '—'}
+                  </td>
+                )
+              })}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Nota al pie */}
+      <p className="text-xs text-heaven-muted">
+        Precios en COP por unidad · Incluye prenda + estampado · No incluye envío
+      </p>
+    </div>
+  )
+}
