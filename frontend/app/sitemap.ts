@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
+import { normalizeSiteUrl } from '@/lib/utils'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://madeinheavenco.com'
+const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL)
 
 /**
  * Sitemap dinámico — Next.js 14 App Router

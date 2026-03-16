@@ -5,6 +5,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import WhatsAppFAB from '@/components/ui/WhatsAppFAB'
 import { CartProvider } from '@/lib/cart-context'
+import { normalizeSiteUrl } from '@/lib/utils'
 import './globals.css'
 
 /* ============================================
@@ -30,7 +31,7 @@ const dmSans = DM_Sans({
    Metadata SEO
    ============================================ */
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://madeinheavenco.com'
+const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL)
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

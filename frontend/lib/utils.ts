@@ -11,3 +11,21 @@ export function formatCOP(valor: number): string {
     maximumFractionDigits: 0,
   }).format(valor)
 }
+
+/** Normaliza una URL pública del sitio y agrega https:// si falta el protocolo */
+export function normalizeSiteUrl(siteUrl?: string): string {
+  const fallback = 'https://madeinheavenco.com'
+  const rawValue = siteUrl?.trim()
+
+  if (!rawValue) {
+    return fallback
+  }
+
+  const withProtocol = /^https?:\/\//i.test(rawValue) ? rawValue : `https://${rawValue}`
+
+  try {
+    return new URL(withProtocol).toString().replace(/\/$/, '')
+  } catch {
+    return fallback
+  }
+}
