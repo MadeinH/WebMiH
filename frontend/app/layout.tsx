@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Bebas_Neue, DM_Sans } from 'next/font/google'
+import Script from 'next/script'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import WhatsAppFAB from '@/components/ui/WhatsAppFAB'
@@ -110,9 +111,9 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="alternate icon" href="/favicon.svg" />
         <link rel="shortcut icon" href="/favicon.svg" />
-        {/* JSON-LD — datos estáticos del servidor, type=application/ld+json no es ejecutable */}
-        {/* eslint-disable-next-line react/no-danger */}
-        <script
+        <Script
+          id="mih-jsonld"
+          strategy="beforeInteractive"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
