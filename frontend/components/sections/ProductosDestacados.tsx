@@ -1,45 +1,12 @@
 import SectionWrapper from '@/components/ui/SectionWrapper'
 import Badge from '@/components/ui/Badge'
 import ProductCard from '@/components/ui/ProductCard'
-
-/** Productos destacados hardcodeados — en producción vendrán de Supabase */
-const productosDestacados = [
-  {
-    nombre: 'Camiseta Personalizada',
-    material: 'Piel de durazno / Algodón 100%',
-    horma: 'Hombre, Mujer, Niño',
-    precioDesde: 18500,
-    soloWhatsApp: false,
-    slug: 'camiseta-personalizada',
-  },
-  {
-    nombre: 'Hoodie Un Color',
-    material: 'Algodón perchado',
-    horma: 'Unisex',
-    precioDesde: 58500,
-    soloWhatsApp: false,
-    slug: 'hoodie-un-color',
-  },
-  {
-    nombre: 'Camiseta Oversize',
-    material: 'Algodón 100% / Piel de durazno',
-    horma: 'Unisex',
-    precioDesde: 30500,
-    soloWhatsApp: false,
-    slug: 'camiseta-oversize',
-  },
-  {
-    nombre: 'Rompevientos',
-    material: 'Nylon premium',
-    horma: 'Unisex',
-    precioDesde: 33500,
-    soloWhatsApp: false,
-    slug: 'rompevientos',
-  },
-]
+import { getFeaturedProducts, getStartingPrice } from '@/lib/content/repository'
 
 /** Sección de productos destacados en la homepage */
-export default function ProductosDestacados() {
+export default async function ProductosDestacados() {
+  const productosDestacados = await getFeaturedProducts()
+
   return (
     <SectionWrapper>
       <div className="mb-12 text-center">
@@ -54,7 +21,16 @@ export default function ProductosDestacados() {
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {productosDestacados.map((p) => (
-          <ProductCard key={p.slug} {...p} />
+          <ProductCard
+            key={p.slug}
+            nombre={p.nombre}
+            material={p.material}
+            horma={p.horma || undefined}
+            precioDesde={getStartingPrice(p) ?? undefined}
+            soloWhatsApp={p.soloCotizar}
+            slug={p.slug}
+            imagenUrl={p.imagenUrl ?? undefined}
+          />
         ))}
       </div>
     </SectionWrapper>

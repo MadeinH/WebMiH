@@ -8,6 +8,74 @@ import { z } from 'zod'
 /** Regex para bloquear caracteres de inyección en texto libre */
 const SAFE_TEXT_REGEX = /^[^<>{}]*$/
 
+const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+export const priceMatrixSchema = z.object({
+  detalCarta: z.number().int().nonnegative().nullable(),
+  detalEstandar: z.number().int().nonnegative().nullable(),
+  mayoreo3: z.number().int().nonnegative().nullable(),
+  mayoreo6: z.number().int().nonnegative().nullable(),
+  mayoreo12: z.number().int().nonnegative().nullable(),
+})
+
+export const managedItemSchema = z.object({
+  id: z.string().uuid('ID inválido'),
+  type: z.enum(['catalog', 'accessory']),
+  slug: z.string().min(2).max(120).regex(slugRegex, 'Slug inválido'),
+  nombre: z.string().min(2).max(160).regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
+  descripcion: z.string().max(1000).regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
+  subcategoria: z.string().max(120).regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
+  material: z.string().max(200).regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
+  horma: z.string().max(50).regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
+  soloCotizar: z.boolean(),
+  activo: z.boolean(),
+  imagenUrl: z.string().url('URL inválida').nullable(),
+  featured: z.boolean(),
+  priceMatrix: priceMatrixSchema,
+})
+
+export const siteContentSchema = z.object({
+  heroDescription: z.string().max(400).regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
+  catalogoIntro: z.string().max(400).regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
+  accesoriosIntro: z.string().max(400).regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
+  outOfCatalogTitle: z.string().max(120).regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
+  outOfCatalogDescription: z.string().max(400).regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
+  featuredProductSlugs: z.array(z.string().regex(slugRegex, 'Slug inválido')).max(12),
+})
+
+export const adminContentSchema = z
+  .object({
+    site: siteContentSchema,
+    catalog: z.array(managedItemSchema),
+    accessories: z.array(managedItemSchema),
+    updatedAt: z.string(),
+  })
+  .superRefine((snapshot, ctx) => {
+    const slugs = new Set<string>()
+    const allItems = [...snapshot.catalog, ...snapshot.accessories]
+
+    allItems.forEach((item, index) => {
+      if (slugs.has(item.slug)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Cada producto debe tener un slug único',
+          path: ['catalog', index, 'slug'],
+        })
+      }
+      slugs.add(item.slug)
+    })
+
+    snapshot.site.featuredProductSlugs.forEach((slug, index) => {
+      if (!slugs.has(slug)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'El producto destacado debe existir en catálogo o accesorios',
+          path: ['site', 'featuredProductSlugs', index],
+        })
+      }
+    })
+  })
+
 /** Schema de validación para el formulario de cotización */
 export const cotizacionSchema = z.object({
   nombre: z
@@ -60,9 +128,10 @@ export const solicitudCotizacionSchema = cotizacionSchema.extend({
     .array(itemCotizacionSchema)
     .min(1, 'Agrega al menos un producto')
     .max(50, 'Máximo 50 productos por cotización'),
-  recaptchaToken: z.string().min(1, 'Token de reCAPTCHA requerido').max(2048),
+  recaptchaToken: z.string().min(1, 'Token de reCAPTCHA requerido').max(2048).optional(),
 })
 
 export type CotizacionInput = z.infer<typeof cotizacionSchema>
 export type ItemCotizacionInput = z.infer<typeof itemCotizacionSchema>
 export type SolicitudCotizacionInput = z.infer<typeof solicitudCotizacionSchema>
+export type AdminContentInput = z.infer<typeof adminContentSchema>

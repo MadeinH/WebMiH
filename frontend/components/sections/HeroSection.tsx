@@ -1,8 +1,12 @@
 import CTAButton from '@/components/ui/CTAButton'
 import { buildWhatsAppUrl } from '@/lib/whatsapp'
 
+interface HeroSectionProps {
+  description: string
+}
+
 /** Sección hero principal de la homepage */
-export default function HeroSection() {
+export default function HeroSection({ description }: HeroSectionProps) {
   return (
     <section className="relative flex min-h-[85vh] items-center overflow-hidden bg-heaven-bg-dark">
       {/* Fondo decorativo con gradiente */}
@@ -38,8 +42,7 @@ export default function HeroSection() {
 
           {/* Descripción */}
           <p className="max-w-xl font-body text-lg leading-relaxed text-heaven-muted">
-            Personaliza camisetas, hoodies, gorras y más con estampados geek, anime y 
-            cultura pop. DTF, sublimación, bordado y más técnicas a tu disposición.
+            {description}
           </p>
 
           {/* CTAs */}
@@ -49,7 +52,7 @@ export default function HeroSection() {
             </CTAButton>
             <CTAButton
               variant="whatsapp"
-              href={buildWhatsAppUrl('Hola! Me interesa personalizar un producto 🎨')}
+              href={buildWhatsAppUrl('Hola! Me interesa personalizar un producto')}
               external
             >
               Cotiza ya por WhatsApp
@@ -58,7 +61,7 @@ export default function HeroSection() {
 
           {/* Técnicas disponibles */}
           <div className="flex flex-wrap gap-3 pt-4">
-            {['DTF', 'Sublimación', 'Serigrafía', 'Vinil textil', 'Bordado', 'Reflectivo'].map(
+            {['DTF', 'Sublimación', 'Serigrafía', 'Vinil textil', 'Bordado'].map(
               (tecnica) => (
                 <span
                   key={tecnica}

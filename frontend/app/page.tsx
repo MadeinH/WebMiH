@@ -4,12 +4,15 @@ import ProductosDestacados from '@/components/sections/ProductosDestacados'
 import PersonalizacionSection from '@/components/sections/PersonalizacionSection'
 import OutOfCatalogBanner from '@/components/sections/OutOfCatalogBanner'
 import GlowDivider from '@/components/ui/GlowDivider'
+import { getSiteContent } from '@/lib/content/repository'
 
 /** Página principal — Homepage */
-export default function HomePage() {
+export default async function HomePage() {
+  const site = await getSiteContent()
+
   return (
     <>
-      <HeroSection />
+      <HeroSection description={site.heroDescription} />
       <GlowDivider />
       <CategoriasGrid />
       <GlowDivider />
@@ -17,7 +20,10 @@ export default function HomePage() {
       <GlowDivider />
       <PersonalizacionSection />
       <GlowDivider />
-      <OutOfCatalogBanner />
+      <OutOfCatalogBanner
+        title={site.outOfCatalogTitle}
+        description={site.outOfCatalogDescription}
+      />
     </>
   )
 }

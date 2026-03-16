@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import SectionWrapper from '@/components/ui/SectionWrapper'
 import Badge from '@/components/ui/Badge'
 import ProductCard from '@/components/ui/ProductCard'
+import { getAccessoryItems, getSiteContent, getStartingPrice } from '@/lib/content/repository'
 
 export const metadata: Metadata = {
   title: 'Accesorios',
@@ -9,76 +10,11 @@ export const metadata: Metadata = {
     'Cuadros, pósters, termos, gorras, medias, cojines, mousepads y más. Accesorios personalizados con tu diseño favorito.',
 }
 
-/** Accesorios del catálogo con precios disponibles */
-const accesoriosConPrecio = [
-  {
-    nombre: 'Cuadro',
-    material: 'MDF',
-    slug: 'cuadro-mdf',
-    soloWhatsApp: false,
-    precioDesde: undefined,
-  },
-  {
-    nombre: 'Póster',
-    material: 'Papel / Aluminio',
-    slug: 'poster',
-    soloWhatsApp: false,
-    precioDesde: undefined,
-  },
-  {
-    nombre: 'Termos y Carimañolas',
-    material: 'Vidrio / Acero inox / Aluminio',
-    slug: 'termos',
-    soloWhatsApp: false,
-    precioDesde: undefined,
-  },
-  {
-    nombre: 'Gorras',
-    material: 'Algodón / Poliéster',
-    slug: 'gorras',
-    soloWhatsApp: false,
-    precioDesde: undefined,
-  },
-  {
-    nombre: 'Medias',
-    material: 'Poliéster tacto algodón',
-    slug: 'medias',
-    soloWhatsApp: false,
-    precioDesde: undefined,
-  },
-  {
-    nombre: 'Cojín',
-    material: 'Personalizable',
-    slug: 'cojin',
-    soloWhatsApp: false,
-    precioDesde: undefined,
-  },
-  {
-    nombre: 'Mousepad',
-    material: 'Neopreno',
-    slug: 'mousepad',
-    soloWhatsApp: false,
-    precioDesde: undefined,
-  },
-]
+export default async function AccesoriosPage() {
+  const [site, accessories] = await Promise.all([getSiteContent(), getAccessoryItems()])
+  const accesoriosConPrecio = accessories.filter((item) => !item.soloCotizar)
+  const accesoriosCotizar = accessories.filter((item) => item.soloCotizar)
 
-/** Accesorios solo por cotización */
-const accesoriosCotizar = [
-  {
-    nombre: 'Peluches',
-    material: 'Personalizable',
-    slug: 'peluches',
-    soloWhatsApp: true,
-  },
-  {
-    nombre: 'Bufanda',
-    material: 'Personalizable',
-    slug: 'bufanda',
-    soloWhatsApp: true,
-  },
-]
-
-export default function AccesoriosPage() {
   return (
     <SectionWrapper>
       {/* Encabezado */}
@@ -88,7 +24,7 @@ export default function AccesoriosPage() {
           Accesorios Personalizados
         </h1>
         <p className="mt-4 text-heaven-muted">
-          Cuadros, pósters, gorras, termos y mucho más. Todos personalizables con tu diseño.
+          {site.accesoriosIntro}
         </p>
       </div>
 
@@ -102,10 +38,12 @@ export default function AccesoriosPage() {
             <ProductCard
               key={a.slug}
               nombre={a.nombre}
-              material={a.material}
-              precioDesde={a.precioDesde}
-              soloWhatsApp={a.soloWhatsApp}
+              material={a.material || 'Personalizable'}
+              horma={a.horma || undefined}
+              precioDesde={getStartingPrice(a) ?? undefined}
+              soloWhatsApp={a.soloCotizar}
               slug={a.slug}
+              imagenUrl={a.imagenUrl ?? undefined}
             />
           ))}
         </div>
@@ -121,9 +59,11 @@ export default function AccesoriosPage() {
             <ProductCard
               key={a.slug}
               nombre={a.nombre}
-              material={a.material}
+              material={a.material || 'Personalizable'}
+              horma={a.horma || undefined}
               soloWhatsApp
               slug={a.slug}
+              imagenUrl={a.imagenUrl ?? undefined}
             />
           ))}
         </div>

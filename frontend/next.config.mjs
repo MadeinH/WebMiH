@@ -3,7 +3,8 @@
 const isDev = process.env.NODE_ENV !== 'production'
 
 // Next.js dev server necesita eval/inline para React Refresh y runtime de HMR.
-// En producción se mantiene CSP estricta.
+// En producción App Router también inyecta scripts inline para hydration/Flight.
+// Sin nonce por request, la alternativa pragmática es permitir unsafe-inline.
 const ContentSecurityPolicy = isDev
   ? `
   default-src 'self';
@@ -20,7 +21,7 @@ const ContentSecurityPolicy = isDev
 `
   : `
   default-src 'self';
-  script-src 'self' https://www.google.com https://www.gstatic.com;
+  script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com;
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https:;
   font-src 'self';
