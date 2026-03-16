@@ -102,12 +102,13 @@ export async function POST(request: Request) {
     const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY
     if (recaptchaSecret) {
       try {
+        const recaptchaResponse = typeof recaptchaToken === 'string' ? recaptchaToken : ''
         const recaptchaRes = await fetch('https://www.google.com/recaptcha/api/siteverify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({
             secret: recaptchaSecret,
-            response: recaptchaToken,
+            response: recaptchaResponse,
           }),
         })
         const recaptchaData = await recaptchaRes.json()

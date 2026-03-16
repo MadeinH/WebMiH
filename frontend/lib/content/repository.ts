@@ -144,7 +144,7 @@ async function loadSnapshotFromSupabase(): Promise<AdminContentSnapshot | null> 
     return null
   }
 
-  const mapped = productos.map((row) => ({
+  const mapped: ManagedItem[] = productos.map((row) => ({
     id: row.id,
     type: row.categoria === 'accesorios' ? 'accessory' : 'catalog',
     slug: row.slug,
