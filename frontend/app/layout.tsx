@@ -107,6 +107,9 @@ export default function RootLayout({
   return (
     <html lang="es" dir="ltr" className={`${bebasNeue.variable} ${dmSans.variable}`}>
       <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="alternate icon" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.svg" />
         {/* JSON-LD — datos estáticos del servidor, type=application/ld+json no es ejecutable */}
         {/* eslint-disable-next-line react/no-danger */}
         <script

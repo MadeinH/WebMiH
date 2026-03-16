@@ -1,18 +1,24 @@
-import type { NextConfig } from 'next'
+/* Next.js Configuration — Security Hardened (converted from TS to ESM JavaScript) */
 
-/* ============================================
-   Next.js Configuration — Security Hardened
-   OWASP A02 (Misconfiguration), A05 (Injection)
-   ============================================ */
+const isDev = process.env.NODE_ENV !== 'production'
 
-/**
- * Content Security Policy — SIN unsafe-eval/unsafe-inline
- * Tailwind/Next.js inyectan estilos en dev, pero en producción
- * se compilan a archivos estáticos. Usamos 'unsafe-inline' SOLO
- * para style-src porque Next.js lo requiere para CSS-in-JS del
- * hydration. En script-src NO hay unsafe-inline ni unsafe-eval.
- */
-const ContentSecurityPolicy = `
+// Next.js dev server necesita eval/inline para React Refresh y runtime de HMR.
+// En producción se mantiene CSP estricta.
+const ContentSecurityPolicy = isDev
+  ? `
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com;
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' blob: data: https:;
+  font-src 'self' data:;
+  connect-src 'self' ws: wss: http: https: https://*.supabase.co https://www.google.com;
+  frame-src https://www.google.com;
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+  frame-ancestors 'none';
+`
+  : `
   default-src 'self';
   script-src 'self' https://www.google.com https://www.gstatic.com;
   style-src 'self' 'unsafe-inline';
@@ -32,50 +38,30 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: ContentSecurityPolicy.replace(/\s{2,}/g, ' ').trim(),
   },
-  {
-    key: 'X-Frame-Options',
-    value: 'DENY',
-  },
-  {
-    key: 'X-Content-Type-Options',
-    value: 'nosniff',
-  },
-  {
-    key: 'Referrer-Policy',
-    value: 'strict-origin-when-cross-origin',
-  },
-  {
-    key: 'X-DNS-Prefetch-Control',
-    value: 'on',
-  },
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'X-DNS-Prefetch-Control', value: 'on' },
   {
     key: 'Strict-Transport-Security',
     value: 'max-age=63072000; includeSubDomains; preload',
   },
-  {
-    key: 'Permissions-Policy',
-    value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()',
-  },
-  {
-    key: 'X-Permitted-Cross-Domain-Policies',
-    value: 'none',
-  },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()' },
+  { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
 ]
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
 
-  /** Optimización de imágenes activa para Vercel */
   images: {
     formats: ['image/avif', 'image/webp'],
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 días
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96],
   },
 
-  /** Optimización de paquetes — tree shaking agresivo */
   experimental: {
     optimizePackageImports: ['zod', '@supabase/supabase-js'],
   },
