@@ -73,25 +73,6 @@ export default function PanelPage() {
   const [loggingOut, setLoggingOut] = useState(false)
   const [status, setStatus] = useState('Cargando contenido del panel...')
   const [validationErrors, setValidationErrors] = useState<string[]>([])
-
-  if (loading) {
-    return (
-      <SectionWrapper>
-        <div className="space-y-8">
-          <div className="flex flex-col gap-4 rounded-3xl border border-heaven-divider bg-heaven-bg-card p-6 shadow-heaven-card lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <Badge variant="lilac">Panel Admin</Badge>
-              <h1 className="mt-4 font-display text-4xl uppercase tracking-wide text-heaven-text">
-                Cargando panel
-              </h1>
-              <p className="mt-3 text-sm text-heaven-muted">{status}</p>
-            </div>
-          </div>
-        </div>
-      </SectionWrapper>
-    )
-  }
-
   useEffect(() => {
     const localDraft = localStorage.getItem(STORAGE_KEY)
     if (localDraft) {
@@ -126,6 +107,24 @@ export default function PanelPage() {
 
     loadContent()
   }, [router])
+
+  if (loading) {
+    return (
+      <SectionWrapper>
+        <div className="space-y-8">
+          <div className="flex flex-col gap-4 rounded-3xl border border-heaven-divider bg-heaven-bg-card p-6 shadow-heaven-card lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <Badge variant="lilac">Panel Admin</Badge>
+              <h1 className="mt-4 font-display text-4xl uppercase tracking-wide text-heaven-text">
+                Cargando panel
+              </h1>
+              <p className="mt-3 text-sm text-heaven-muted">{status}</p>
+            </div>
+          </div>
+        </div>
+      </SectionWrapper>
+    )
+  }
 
   function updateSiteField(field: keyof AdminContentSnapshot['site'], value: string | string[]) {
     setContent((current) => ({

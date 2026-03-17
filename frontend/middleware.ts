@@ -135,6 +135,7 @@ export function middleware(request: NextRequest) {
   // ── A05: Detectar patrones de inyección en URL ─────
   const fullUrl = request.url
   if (SUSPICIOUS_PATTERNS.some((re) => re.test(fullUrl))) {
+    // eslint-disable-next-line no-console
     console.warn(`${logPrefix} INJECTION_ATTEMPT: ${fullUrl.substring(0, 200)}`)
     return new NextResponse('Bad Request', { status: 400 })
   }
@@ -142,6 +143,7 @@ export function middleware(request: NextRequest) {
   // Revisar query params individualmente
   for (const [key, value] of searchParams) {
     if (SUSPICIOUS_PATTERNS.some((re) => re.test(key) || re.test(value))) {
+      // eslint-disable-next-line no-console
       console.warn(`${logPrefix} SUSPICIOUS_PARAM: ${key}=${value.substring(0, 100)}`)
       return new NextResponse('Bad Request', { status: 400 })
     }
@@ -156,6 +158,7 @@ export function middleware(request: NextRequest) {
     const { allowed, remaining } = checkRateLimit(ip, RATE_LIMIT_MAX_GENERAL)
 
     if (!allowed) {
+      // eslint-disable-next-line no-console
       console.warn(`${logPrefix} RATE_LIMITED`)
       return new NextResponse('Too Many Requests', {
         status: 429,

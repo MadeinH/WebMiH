@@ -140,6 +140,7 @@ export async function POST(request: Request) {
         }
       } catch (recaptchaError) {
         // A10: No bloquear si reCAPTCHA está caído, pero loguear
+        // eslint-disable-next-line no-console
         console.error('reCAPTCHA verification failed:', recaptchaError)
         logSecurityEvent({ ...ctx, type: 'API_ERROR', message: 'reCAPTCHA service unavailable' })
       }

@@ -59,6 +59,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // eslint-disable-next-line no-console
     console.info(`[sign] ${session.username ?? 'admin'} signed upload for ${path} from ${ip}`)
     return NextResponse.json({ signedUrl: data.signedUrl, token: data.token, path: data.path })
   } catch (err: any) {

@@ -15,6 +15,7 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log seguro — no exponer el error al cliente
+    // eslint-disable-next-line no-console
     console.error('[APP_ERROR]', error.digest ?? error.message)
   }, [error])
 

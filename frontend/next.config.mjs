@@ -75,6 +75,9 @@ const nextConfig = {
         hostname: '**.supabase.net',
       },
     ],
+    // Disable Next.js built-in image optimization to reduce CPU on serverless builds
+    // Images are served as-is (use CDN or Supabase public URLs).
+    unoptimized: true,
   },
 
   experimental: {

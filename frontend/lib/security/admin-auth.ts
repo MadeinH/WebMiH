@@ -84,8 +84,20 @@ async function importSigningKey(secret: string): Promise<CryptoKey> {
   )
 }
 
+// Cache imported CryptoKey per secret to avoid repeated expensive imports
+const signingKeyCache = new Map<string, Promise<CryptoKey>>()
+
+async function getSigningKey(secret: string): Promise<CryptoKey> {
+  let p = signingKeyCache.get(secret)
+  if (!p) {
+    p = importSigningKey(secret)
+    signingKeyCache.set(secret, p)
+  }
+  return p
+}
+
 async function signPayload(payload: string, secret: string): Promise<string> {
-  const key = await importSigningKey(secret)
+  const key = await getSigningKey(secret)
   const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload))
   return toBase64Url(signature)
 }
@@ -161,7 +173,7 @@ export async function getAdminSessionFromToken(token: string | null): Promise<Ad
     return null
   }
 
-  const key = await importSigningKey(secret)
+  const key = await getSigningKey(secret)
   const isValid = await crypto.subtle.verify(
     'HMAC',
     key,

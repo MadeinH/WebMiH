@@ -58,6 +58,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ urls, paths: [path, webpPath, thumbPath] })
   } catch (err: any) {
+    // eslint-disable-next-line no-console
     console.error(err)
     return NextResponse.json({ error: String(err) }, { status: 500 })
   }
