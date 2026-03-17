@@ -4,6 +4,8 @@ import Badge from '@/components/ui/Badge'
 import ProductCard from '@/components/ui/ProductCard'
 import { getAccessoryItems, getSiteContent, getStartingPrice } from '@/lib/content/repository'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'Accesorios',
   description:

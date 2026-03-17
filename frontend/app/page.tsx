@@ -6,6 +6,8 @@ import OutOfCatalogBanner from '@/components/sections/OutOfCatalogBanner'
 import GlowDivider from '@/components/ui/GlowDivider'
 import { getSiteContent } from '@/lib/content/repository'
 
+export const revalidate = 86400
+
 /** Página principal — Homepage */
 export default async function HomePage() {
   const site = await getSiteContent()

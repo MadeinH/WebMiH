@@ -92,8 +92,8 @@ const jsonLd = {
     addressCountry: 'CO',
   },
   sameAs: [
-    'https://instagram.com/madeinheavenco',
-    'https://tiktok.com/@madeinheavenco',
+    'https://instagram.com/madeinheaven.shop_',
+    'https://tiktok.com/@madeinheaven.shop_',
   ],
 }
 

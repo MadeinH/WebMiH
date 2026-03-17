@@ -14,7 +14,7 @@ export function formatCOP(valor: number): string {
 
 /** Normaliza una URL pública del sitio y agrega https:// si falta el protocolo */
 export function normalizeSiteUrl(siteUrl?: string): string {
-  const fallback = 'https://madeinheavenco.com'
+  const fallback = 'https://www.madeinhshop.com'
   const rawValue = siteUrl?.trim()
 
   if (!rawValue) {

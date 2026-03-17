@@ -21,7 +21,7 @@ const ContentSecurityPolicy = isDev
 `
   : `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com;
+  script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com;
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https:;
   font-src 'self';
@@ -47,7 +47,7 @@ const securityHeaders = [
     key: 'Strict-Transport-Security',
     value: 'max-age=63072000; includeSubDomains; preload',
   },
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
   { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
 ]
 
@@ -79,6 +79,26 @@ const nextConfig = {
 
   experimental: {
     optimizePackageImports: ['zod', '@supabase/supabase-js'],
+  },
+
+  async redirects() {
+    return [
+      {
+        source: '/index',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/index.html',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/favicon.ico',
+        destination: '/logo.png',
+        permanent: true,
+      },
+    ]
   },
 
   async headers() {

@@ -3,6 +3,22 @@ export type AdminSession = {
   expiresAt: number
 }
 
+function safeEqual(left: string, right: string): boolean {
+  const leftBytes = new TextEncoder().encode(left)
+  const rightBytes = new TextEncoder().encode(right)
+
+  if (leftBytes.length !== rightBytes.length) {
+    return false
+  }
+
+  let diff = 0
+  for (let index = 0; index < leftBytes.length; index += 1) {
+    diff |= leftBytes[index] ^ rightBytes[index]
+  }
+
+  return diff === 0
+}
+
 export const ADMIN_SESSION_COOKIE_NAME = 'mih_admin_session'
 const DEFAULT_DEV_USER = 'admin'
 const DEFAULT_DEV_PASSWORD = 'admin123'
@@ -111,7 +127,7 @@ export function validateAdminCredentials(username: string, password: string): bo
     return false
   }
 
-  return username === expected.username && password === expected.password
+  return safeEqual(username, expected.username) && safeEqual(password, expected.password)
 }
 
 export async function createAdminSessionToken(username: string): Promise<string | null> {

@@ -1,5 +1,8 @@
 import type { MetadataRoute } from 'next'
 import { normalizeSiteUrl } from '@/lib/utils'
+import { getAccessoryItems, getCatalogItems } from '@/lib/content/repository'
+
+export const revalidate = 86400
 
 const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL)
 
@@ -7,7 +10,7 @@ const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL)
  * Sitemap dinámico — Next.js 14 App Router
  * Genera /sitemap.xml automáticamente.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: siteUrl, lastModified: new Date(), changeFrequency: 'weekly', priority: 1.0 },
     { url: `${siteUrl}/catalogo`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
@@ -16,21 +19,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}/cotizacion`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
   ]
 
-  // Slugs de productos — en producción vendrán de Supabase
-  const productSlugs = [
-    'camiseta', 'camiseta-ranglan', 'camiseta-premium', 'camibuzo', 'camiseta-polo',
-    'ranglan-manga-34', 'camiseta-acid-wash', 'camiseta-oversize', 'camiseta-oversize-premium',
-    'hoodie-un-color', 'sueter-un-color', 'sueter-premium', 'hoodie-multicolor',
-    'hoodie-oversize', 'hoodie-premium', 'chaqueta-un-color', 'rompevientos',
-    'rompevientos-semireflectivo', 'camiseta-deportiva', 'buzo-compresivo', 'camisa-compresiva',
-  ]
+  const [catalogItems, accessoryItems] = await Promise.all([getCatalogItems(), getAccessoryItems()])
 
-  const productPages: MetadataRoute.Sitemap = productSlugs.map((slug) => ({
-    url: `${siteUrl}/catalogo/${slug}`,
+  const productPages: MetadataRoute.Sitemap = catalogItems.map((item) => ({
+    url: `${siteUrl}/catalogo/${item.slug}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.6,
   }))
 
-  return [...staticPages, ...productPages]
+  const accessoryPages: MetadataRoute.Sitemap = accessoryItems.map((item) => ({
+    url: `${siteUrl}/accesorios/${item.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.6,
+  }))
+
+  return [...staticPages, ...productPages, ...accessoryPages]
 }

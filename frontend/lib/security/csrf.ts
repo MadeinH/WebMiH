@@ -11,6 +11,8 @@
 /** Dominios permitidos para requests API */
 const ALLOWED_ORIGINS = [
   process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+  'https://madeinhshop.com',
+  'https://www.madeinhshop.com',
   'https://madeinheaven.co',
   'https://www.madeinheaven.co',
   'https://madeinheavenco.com',

@@ -7,7 +7,7 @@ const categorias = [
   {
     nombre: 'Camisetas',
     descripcion: 'Piel de durazno, algodón, oversize, acid wash y más',
-    href: '/catalogo?cat=camisetas',
+    href: '/catalogo#camisetas',
     badge: 'Desde $18.500',
     badgeVariant: 'lilac' as const,
     icono: null,
@@ -15,7 +15,7 @@ const categorias = [
   {
     nombre: 'Hoodies & Suéteres',
     descripcion: 'Algodón perchado, mónaco, premium, oversize',
-    href: '/catalogo?cat=hoodies',
+    href: '/catalogo#hoodies',
     badge: 'Desde $31.500',
     badgeVariant: 'mint' as const,
     icono: null,
@@ -23,7 +23,7 @@ const categorias = [
   {
     nombre: 'Rompevientos & Chaquetas',
     descripcion: 'Nylon premium, algodón perchado',
-    href: '/catalogo?cat=chaquetas',
+    href: '/catalogo#chaquetas',
     badge: 'Desde $33.500',
     badgeVariant: 'rose' as const,
     icono: null,
@@ -31,7 +31,7 @@ const categorias = [
   {
     nombre: 'Ropa Deportiva',
     descripcion: 'Camisetas, buzos y camisas compresivas',
-    href: '/catalogo?cat=deportiva',
+    href: '/catalogo#deportiva',
     badge: 'Desde $35.500',
     badgeVariant: 'lilac' as const,
     icono: null,

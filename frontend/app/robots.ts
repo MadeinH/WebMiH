@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next'
 import { normalizeSiteUrl } from '@/lib/utils'
 
+export const revalidate = 86400
+
 const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL)
 
 /**
@@ -13,7 +15,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/'],
+        disallow: ['/api/', '/panel/', '/panel/api/'],
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,

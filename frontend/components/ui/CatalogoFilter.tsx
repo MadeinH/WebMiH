@@ -1,4 +1,4 @@
-import Link from 'next/link'
+'use client'
 
 const categorias = [
   { key: null, label: 'Todas' },
@@ -10,20 +10,21 @@ const categorias = [
 
 interface CatalogoFilterProps {
   activeCat: string | null
+  onChange: (nextCat: string | null) => void
 }
 
-/** Filtro por categoría para el catálogo — Server Component, sin JS client */
-export default function CatalogoFilter({ activeCat }: CatalogoFilterProps) {
+/** Filtro por categoría para el catálogo */
+export default function CatalogoFilter({ activeCat, onChange }: CatalogoFilterProps) {
   return (
     <nav aria-label="Filtrar por categoría" className="mb-8 flex flex-wrap justify-center gap-2">
       {categorias.map((cat) => {
         const isActive = activeCat === cat.key
-        const href = cat.key ? `/catalogo?cat=${cat.key}` : '/catalogo'
 
         return (
-          <Link
+          <button
             key={cat.label}
-            href={href}
+            type="button"
+            onClick={() => onChange(cat.key)}
             className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
               isActive
                 ? 'bg-heaven-lilac text-heaven-bg-dark'
@@ -31,7 +32,7 @@ export default function CatalogoFilter({ activeCat }: CatalogoFilterProps) {
             }`}
           >
             {cat.label}
-          </Link>
+          </button>
         )
       })}
     </nav>

@@ -159,6 +159,12 @@ export default function PanelPage() {
       body: formData,
     })
 
+    if (response.status === 401) {
+      setStatus('La sesión expiró. Debes volver a iniciar sesión.')
+      router.replace('/panel/login?next=/panel')
+      return
+    }
+
     const payload = await response.json().catch(() => null)
     if (!response.ok || !payload?.url) {
       setStatus(payload?.error ?? 'No se pudo subir la imagen.')
@@ -180,6 +186,12 @@ export default function PanelPage() {
       method: 'POST',
       body: formData,
     })
+
+    if (response.status === 401) {
+      setStatus('La sesión expiró. Debes volver a iniciar sesión.')
+      router.replace('/panel/login?next=/panel')
+      return
+    }
 
     const payload = await response.json().catch(() => null)
     if (!response.ok || !payload?.url) {
@@ -216,6 +228,12 @@ export default function PanelPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
+
+      if (response.status === 401) {
+        setStatus('La sesión expiró. Debes volver a iniciar sesión.')
+        router.replace('/panel/login?next=/panel')
+        return
+      }
 
       const data = await response.json().catch(() => null)
       if (!response.ok) {

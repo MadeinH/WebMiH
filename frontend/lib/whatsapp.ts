@@ -2,7 +2,7 @@ import type { ItemCotizacion } from '@/types/cotizacion'
 import { sanitizeText, sanitizeForUrl } from '@/lib/security/sanitize'
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WA_NUMBER ?? '573249207921'
-const IG_USERNAME = process.env.NEXT_PUBLIC_IG_USERNAME ?? 'madeinheavenco'
+const IG_USERNAME = process.env.NEXT_PUBLIC_IG_USERNAME ?? 'madeinheaven.shop_'
 
 /* ============================================
    WhatsApp

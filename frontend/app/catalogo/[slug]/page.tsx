@@ -10,6 +10,9 @@ import {
 } from '@/lib/content/repository'
 import { buildProductoUrl } from '@/lib/whatsapp'
 
+export const revalidate = 86400
+export const dynamicParams = false
+
 interface ProductoPageProps {
   params: { slug: string }
 }

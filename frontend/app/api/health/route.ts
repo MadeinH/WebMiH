@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+export const revalidate = 60
+
 /**
  * GET — Health check endpoint
  * A02: Revelar solo información mínima necesaria (no versiones ni env)
@@ -8,12 +10,11 @@ export async function GET() {
   return NextResponse.json(
     {
       status: 'ok',
-      timestamp: new Date().toISOString(),
     },
     {
       status: 200,
       headers: {
-        'Cache-Control': 'no-store',
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
       },
     }
   )

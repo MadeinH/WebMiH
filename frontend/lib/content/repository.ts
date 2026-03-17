@@ -1,9 +1,11 @@
-import { revalidatePath, unstable_noStore as noStore } from 'next/cache'
+import { revalidatePath, revalidateTag, unstable_cache, unstable_noStore as noStore } from 'next/cache'
 import { defaultAdminContent } from '@/lib/content/default-content'
 import type { AdminContentSnapshot, ManagedItem } from '@/lib/content/types'
 import { createServerClient } from '@/lib/supabase/server'
 
 let memorySnapshot: AdminContentSnapshot = structuredClone(defaultAdminContent)
+const PUBLIC_CONTENT_REVALIDATE_SECONDS = 60 * 60 * 24
+const PUBLIC_CONTENT_TAG = 'public-content'
 
 type CmsSiteRow = {
   id: string
@@ -53,6 +55,12 @@ function normalizeSnapshot(snapshot: AdminContentSnapshot): AdminContentSnapshot
 
 function hasSupabaseServerConfig(): boolean {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+}
+
+function throwOnSupabaseError(operation: string, error: { message: string } | null): void {
+  if (error) {
+    throw new Error(`${operation}: ${error.message}`)
+  }
 }
 
 function sortItems(items: ManagedItem[]): ManagedItem[] {
@@ -192,7 +200,17 @@ async function persistSnapshotToSupabase(snapshot: AdminContentSnapshot): Promis
   const nowIso = new Date().toISOString()
   const allItems = [...snapshot.catalog, ...snapshot.accessories]
 
-  await supabase.from('cms_site_content').upsert(
+  const { data: existingProducts, error: existingProductsError } = await supabase
+    .from('productos')
+    .select('id')
+  throwOnSupabaseError('No se pudieron consultar los productos actuales', existingProductsError)
+
+  const nextProductIds = new Set(allItems.map((item) => item.id))
+  const idsToDelete = (existingProducts ?? [])
+    .map((row) => String(row.id))
+    .filter((id) => !nextProductIds.has(id))
+
+  const { error: siteUpsertError } = await supabase.from('cms_site_content').upsert(
     {
       id: 'site',
       hero_description: snapshot.site.heroDescription,
@@ -208,6 +226,7 @@ async function persistSnapshotToSupabase(snapshot: AdminContentSnapshot): Promis
     },
     { onConflict: 'id' },
   )
+  throwOnSupabaseError('No se pudo actualizar el contenido global del sitio', siteUpsertError)
 
   const productRows = allItems.map((item, index) => ({
     id: item.id,
@@ -225,7 +244,13 @@ async function persistSnapshotToSupabase(snapshot: AdminContentSnapshot): Promis
     sort_order: index,
   }))
 
-  await supabase.from('productos').upsert(productRows, { onConflict: 'id' })
+  const { error: productsUpsertError } = await supabase.from('productos').upsert(productRows, { onConflict: 'id' })
+  throwOnSupabaseError('No se pudieron guardar los productos', productsUpsertError)
+
+  if (idsToDelete.length > 0) {
+    const { error: productsDeleteError } = await supabase.from('productos').delete().in('id', idsToDelete)
+    throwOnSupabaseError('No se pudieron eliminar los productos removidos del panel', productsDeleteError)
+  }
 
   const priceRows = allItems.map((item) => ({
     producto_id: item.id,
@@ -237,14 +262,34 @@ async function persistSnapshotToSupabase(snapshot: AdminContentSnapshot): Promis
     updated_at: nowIso,
   }))
 
-  await supabase.from('precios').upsert(priceRows, { onConflict: 'producto_id' })
+  const { error: pricesUpsertError } = await supabase.from('precios').upsert(priceRows, { onConflict: 'producto_id' })
+  throwOnSupabaseError('No se pudieron guardar los precios', pricesUpsertError)
 
-  await supabase.from('cms_audit_logs').insert({
+  const { error: auditInsertError } = await supabase.from('cms_audit_logs').insert({
     action: 'admin_content_saved',
     payload_summary: { updatedAt: snapshot.updatedAt, itemCount: allItems.length },
     created_at: nowIso,
   })
+  throwOnSupabaseError('No se pudo guardar el log de auditoría del panel', auditInsertError)
 }
+
+const getCachedPublicSnapshot = unstable_cache(
+  async (): Promise<AdminContentSnapshot> => {
+    try {
+      const snapshot = await loadSnapshotFromSupabase()
+      if (snapshot) {
+        memorySnapshot = cloneSnapshot(snapshot)
+        return snapshot
+      }
+    } catch {
+      // Fallback a memoria/defaults si la BD no está disponible temporalmente.
+    }
+
+    return cloneSnapshot(memorySnapshot)
+  },
+  ['mih-public-content-snapshot'],
+  { revalidate: PUBLIC_CONTENT_REVALIDATE_SECONDS, tags: [PUBLIC_CONTENT_TAG] },
+)
 
 export async function getAdminContent(): Promise<AdminContentSnapshot> {
   noStore()
@@ -270,41 +315,43 @@ export async function saveAdminContent(snapshot: AdminContentSnapshot): Promise<
   await persistSnapshotToSupabase(normalized)
   memorySnapshot = cloneSnapshot(normalized)
 
+  revalidateTag(PUBLIC_CONTENT_TAG)
   revalidatePath('/')
   revalidatePath('/catalogo')
   revalidatePath('/accesorios')
+  revalidatePath('/catalogo/[slug]', 'page')
+  revalidatePath('/accesorios/[slug]', 'page')
 
   return cloneSnapshot(normalized)
 }
 
 export async function getSiteContent() {
-  noStore()
-  return (await getAdminContent()).site
+  const snapshot = await getCachedPublicSnapshot()
+  return {
+    ...snapshot.site,
+    featuredProductSlugs: [...snapshot.site.featuredProductSlugs],
+    bannerImages: [...snapshot.site.bannerImages],
+  }
 }
 
 export async function getCatalogItems() {
-  noStore()
-  return (await getAdminContent()).catalog.filter((item) => item.activo)
+  return (await getCachedPublicSnapshot()).catalog.filter((item) => item.activo)
 }
 
 export async function getCatalogItemBySlug(slug: string) {
-  noStore()
-  return (await getAdminContent()).catalog.find((item) => item.slug === slug) ?? null
+  return (await getCachedPublicSnapshot()).catalog.find((item) => item.slug === slug) ?? null
 }
 
 export async function getAccessoryItems() {
-  noStore()
-  return (await getAdminContent()).accessories.filter((item) => item.activo)
+  return (await getCachedPublicSnapshot()).accessories.filter((item) => item.activo)
 }
 
 export async function getAccessoryItemBySlug(slug: string) {
-  noStore()
-  return (await getAdminContent()).accessories.find((item) => item.slug === slug) ?? null
+  return (await getCachedPublicSnapshot()).accessories.find((item) => item.slug === slug) ?? null
 }
 
 export async function getFeaturedProducts() {
-  noStore()
-  const snapshot = await getAdminContent()
+  const snapshot = await getCachedPublicSnapshot()
   const all = [...snapshot.catalog, ...snapshot.accessories].filter((item) => item.activo)
   return snapshot.site.featuredProductSlugs
     .map((slug) => all.find((item) => item.slug === slug) ?? null)

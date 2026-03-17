@@ -31,7 +31,7 @@ export default function ProductCard({
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl bg-heaven-bg-card shadow-heaven-card transition-shadow duration-300 hover:shadow-heaven-glow">
       {/* Imagen del producto */}
-      <Link href={detailUrl} className="relative aspect-square overflow-hidden">
+      <Link href={detailUrl} prefetch={false} className="relative aspect-square overflow-hidden">
         {imagenUrl ? (
           <Image
             src={imagenUrl}
@@ -52,7 +52,7 @@ export default function ProductCard({
 
       {/* Información */}
       <div className="flex flex-1 flex-col gap-3 p-5">
-        <Link href={detailUrl}>
+        <Link href={detailUrl} prefetch={false}>
           <h3 className="font-display text-lg uppercase tracking-wide text-heaven-text transition-colors hover:text-heaven-lilac">
             {nombre}
           </h3>
@@ -85,6 +85,7 @@ export default function ProductCard({
               )}
               <Link
                 href={detailUrl}
+                prefetch={false}
                 className="text-sm font-semibold text-heaven-mint transition-colors hover:text-heaven-lilac"
               >
                 Ver detalles →

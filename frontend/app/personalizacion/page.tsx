@@ -4,6 +4,8 @@ import Badge from '@/components/ui/Badge'
 import CTAButton from '@/components/ui/CTAButton'
 import { buildWhatsAppUrl } from '@/lib/whatsapp'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'Personalización',
   description:
