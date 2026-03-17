@@ -8,32 +8,26 @@ const tecnicas = [
   {
     nombre: 'DTF (Direct to Film)',
     descripcion: 'Estampados a todo color con alta resolución y durabilidad. Ideal para diseños complejos.',
-    icono: '🎨',
   },
   {
     nombre: 'Sublimación',
     descripcion: 'Colores vibrantes que se funden con la tela. Perfecto para poliéster y telas claras.',
-    icono: '🌈',
   },
   {
     nombre: 'Serigrafía',
     descripcion: 'Técnica clásica para grandes cantidades. Colores sólidos y duraderos.',
-    icono: '🖨️',
   },
   {
     nombre: 'Vinil Textil',
     descripcion: 'Diseños con textura y relieve. Ideal para nombres, números y logos.',
-    icono: '✂️',
   },
   {
     nombre: 'Bordado',
     descripcion: 'Acabado premium y elegante. Perfecto para logos y diseños pequeños.',
-    icono: '🧵',
   },
   {
     nombre: 'Estampado Reflectivo',
     descripcion: 'Diseños que brillan en la oscuridad con luz directa. Efecto impactante.',
-    icono: '✨',
   },
 ]
 
@@ -58,7 +52,6 @@ export default function PersonalizacionSection() {
             key={t.nombre}
             className="rounded-2xl border border-heaven-divider bg-heaven-bg-card p-6 transition-all duration-300 hover:border-heaven-lilac/30 hover:shadow-heaven-glow"
           >
-            <div className="mb-3 text-3xl">{t.icono}</div>
             <h3 className="font-display text-lg uppercase tracking-wide text-heaven-text">
               {t.nombre}
             </h3>
@@ -74,7 +67,7 @@ export default function PersonalizacionSection() {
         </p>
         <CTAButton
           variant="whatsapp"
-          href={buildWhatsAppUrl('Hola! Quiero saber sobre las técnicas de personalización que manejan 🎨')}
+          href={buildWhatsAppUrl('Hola! Quiero saber sobre las técnicas de personalización que manejan')}
           external
         >
           Consultar por WhatsApp

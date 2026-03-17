@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useCart } from '@/lib/cart-context'
 import MaterialSelector from './MaterialSelector'
 import PriceTable from './PriceTable'
 import CTAButton from './CTAButton'
 import { buildWhatsAppUrl } from '@/lib/whatsapp'
+import type { ItemCotizacion } from '@/types/cotizacion'
 import type { ManagedItem } from '@/lib/content/types'
 
 interface ProductQuotationFormProps {
@@ -17,6 +18,7 @@ interface ProductQuotationFormProps {
  */
 export default function ProductQuotationForm({ producto }: ProductQuotationFormProps) {
   const { addItem } = useCart()
+  const isAccessory = producto.type === 'accessory'
   const [cantidad, setCantidad] = useState(1)
   const [color, setColor] = useState('')
   const [material, setMaterial] = useState(() => {
@@ -24,69 +26,113 @@ export default function ProductQuotationForm({ producto }: ProductQuotationFormP
     const mats = producto.material.split('/').map((m) => m.trim())
     return mats[0] || producto.material
   })
+  const [selectedVariant, setSelectedVariant] = useState(() => producto.variants?.[0]?.label ?? '')
+  const [tecnicaSeleccionada, setTecnicaSeleccionada] = useState('')
   const [added, setAdded] = useState(false)
 
-  // Técnicas disponibles según cantidad
-  const getTecnicas = () => {
-    if (cantidad < 3) return ['DTF', 'Sublimación', 'Bordado', 'Vinil Textil']
-    if (cantidad < 6) return ['DTF',  'Serigrafía', 'Bordado', 'Vinil Textil']
-    if (cantidad < 12) return ['DTF', 'Serigrafía', 'Bordado', 'Vinil Textil']
-    return ['DTF', 'Serigrafía (opción económica)', 'Bordado', 'Vinil Textil']
+  function materialPermiteSublimacion(materialText: string): boolean {
+    const value = materialText.toLowerCase()
+    return (
+      value.includes('poliester') ||
+      value.includes('poliéster') ||
+      value.includes('piel de algodon') ||
+      value.includes('piel de algodón') ||
+      value.includes('piel de durazno')
+    )
   }
+
+  const tecnicasDisponibles = useMemo(() => {
+    if (isAccessory) return []
+
+    const tecnicas = ['DTF']
+    if (materialPermiteSublimacion(material)) {
+      tecnicas.push('Sublimación')
+    }
+    if (cantidad >= 6) {
+      tecnicas.push('Vinil Textil')
+    }
+    if (cantidad >= 12) {
+      tecnicas.push('Serigrafía')
+    }
+
+    return tecnicas
+  }, [cantidad, isAccessory, material])
+
+  useEffect(() => {
+    if (isAccessory) {
+      setTecnicaSeleccionada('Estampado estándar')
+      return
+    }
+
+    if (!tecnicasDisponibles.includes(tecnicaSeleccionada)) {
+      setTecnicaSeleccionada(tecnicasDisponibles[0] ?? 'DTF')
+    }
+  }, [isAccessory, tecnicaSeleccionada, tecnicasDisponibles])
 
   // Texto dinámico según cantidad
   const getQuotationNote = () => {
-    if (cantidad < 3) {
-      return 'Precios en COP por unidad · Incluye prenda + estampado base'
+    if (cantidad <= 2) {
+      return 'Precios en COP por unidad · Incluye prenda + estampado · No incluye envío'
     }
-    if (cantidad < 6) {
-      return 'Precios en COP por unidad · Precios al por mayor · Estampado por cotizar · Vinil textil disponible'
+    if (cantidad >= 3) {
+      return 'Precios en COP por unidad · Incluye solo la prenda · Estampado se cotiza por separado'
     }
-    if (cantidad < 12) {
-      return 'Precios en COP por unidad · Precios al por mayor · Estampado por cotizar · Vinil textil disponible'
-    }
-    return 'Precios en COP por unidad · Mayoreo 12+ · Estampado por cotizar · Serigrafía disponible · Contacta para precio final'
+    return ''
   }
 
   function handleAddToCart() {
-    const item = {
+    const partes: string[] = []
+    if (!isAccessory) {
+      partes.push(`Color: ${color || 'Por definir'}`)
+    }
+    partes.push(`Material: ${material}`)
+    if (selectedVariant) {
+      partes.push(`Tamaño: ${selectedVariant}`)
+    }
+    partes.push(`Técnica: ${tecnicaSeleccionada}`)
+
+    const item: ItemCotizacion = {
       productoId: producto.id,
       nombre: producto.nombre,
-      variantes: `Color: ${color || 'N/A'} | Material: ${material}`,
+      variantes: partes.join(' | '),
       cantidad,
     }
+
     addItem(item)
     setAdded(true)
     setTimeout(() => setAdded(false), 2500)
   }
 
   function handleWhatsApp() {
-    const msg = `Hola! Quiero cotizar:\n\n` +
+    const msgBase = `Hola! Quiero cotizar:\n\n` +
       `• Producto: ${producto.nombre}\n` +
       `• Cantidad: ${cantidad} ${cantidad === 1 ? 'unidad' : 'unidades'}\n` +
       `• Material: ${material}\n` +
-      `• Color deseado: ${color || 'Por definir'}\n` +
-      `• Técnicas disponibles: ${getTecnicas().join(', ')}`
-    window.open(buildWhatsAppUrl(msg), '_blank')
+      (selectedVariant ? `• Tamaño: ${selectedVariant}\n` : '') +
+      (!isAccessory ? `• Color deseado: ${color || 'Por definir'}\n` : '') +
+      `• Técnica: ${tecnicaSeleccionada}`
+
+    window.open(buildWhatsAppUrl(msgBase), '_blank')
   }
 
   return (
     <div className="space-y-6">
-      {/* Color deseado */}
-      <div>
-        <label htmlFor="color" className="mb-2 block text-sm font-medium text-heaven-text">
-          Color deseado
-        </label>
-        <input
-          id="color"
-          type="text"
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
-          placeholder="Ej: azul marino, negro, blanco"
-          className="w-full rounded-lg border border-heaven-divider bg-heaven-bg-dark px-4 py-3 text-heaven-text placeholder:text-heaven-muted/50 focus:border-heaven-lilac focus:outline-none focus:ring-1 focus:ring-heaven-lilac"
-        />
-        <p className="mt-1 text-xs text-heaven-muted">Sujeto a disponibilidad del material</p>
-      </div>
+      {!isAccessory && (
+        <div>
+          <label htmlFor="color" className="mb-2 block text-sm font-medium text-heaven-text">
+            Color deseado
+          </label>
+          <input
+            id="color"
+            type="text"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            placeholder="Ej: azul marino, negro, blanco"
+            className="w-full rounded-lg border border-heaven-divider bg-heaven-bg-dark px-4 py-3 text-heaven-text placeholder:text-heaven-muted/50 focus:border-heaven-lilac focus:outline-none focus:ring-1 focus:ring-heaven-lilac"
+          />
+          <p className="mt-1 text-xs text-heaven-muted">Sujeto a disponibilidad del material</p>
+        </div>
+      )}
 
       {/* Material */}
       <MaterialSelector
@@ -94,6 +140,28 @@ export default function ProductQuotationForm({ producto }: ProductQuotationFormP
         value={material}
         onChange={setMaterial}
       />
+
+      {isAccessory && (producto.variants?.length ?? 0) > 0 && (
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-heaven-text">Tamaño / presentación</label>
+          <div className="flex flex-wrap gap-2">
+            {producto.variants?.map((variant) => (
+              <button
+                key={variant.label}
+                type="button"
+                onClick={() => setSelectedVariant(variant.label)}
+                className={`rounded-full border-2 px-4 py-2 text-sm font-medium transition-all ${
+                  selectedVariant === variant.label
+                    ? 'border-heaven-lilac bg-heaven-lilac text-heaven-bg-dark'
+                    : 'border-heaven-divider bg-heaven-bg-dark text-heaven-text hover:border-heaven-lilac hover:text-heaven-lilac'
+                }`}
+              >
+                {variant.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tabla de precios */}
       {Object.values(producto.priceMatrix).some((v) => v !== null) && (
@@ -107,6 +175,7 @@ export default function ProductQuotationForm({ producto }: ProductQuotationFormP
             mayoreo_3={producto.priceMatrix.mayoreo3 ?? 0}
             mayoreo_6={producto.priceMatrix.mayoreo6 ?? 0}
             mayoreo_12={producto.priceMatrix.mayoreo12 ?? 0}
+            cantidad={cantidad}
           />
           <p className="text-xs text-heaven-muted">{getQuotationNote()}</p>
         </div>
@@ -139,17 +208,29 @@ export default function ProductQuotationForm({ producto }: ProductQuotationFormP
           </div>
         </div>
 
-        {/* Técnicas disponibles (dinámico) */}
-        <div className="rounded-lg bg-heaven-bg-card p-4">
-          <p className="text-xs font-semibold text-heaven-lilac mb-2">Técnicas disponibles para {cantidad} {cantidad === 1 ? 'unidad' : 'unidades'}:</p>
-          <div className="flex flex-wrap gap-2">
-            {getTecnicas().map((t) => (
-              <span key={t} className="rounded-full border border-heaven-divider bg-heaven-bg-dark px-3 py-1 text-xs text-heaven-muted">
-                {t}
-              </span>
-            ))}
+        {!isAccessory && (
+          <div className="rounded-lg bg-heaven-bg-card p-4">
+            <p className="mb-2 text-xs font-semibold text-heaven-lilac">
+              Técnica para {cantidad} {cantidad === 1 ? 'unidad' : 'unidades'}:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {tecnicasDisponibles.map((tecnica) => (
+                <button
+                  key={tecnica}
+                  type="button"
+                  onClick={() => setTecnicaSeleccionada(tecnica)}
+                  className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                    tecnicaSeleccionada === tecnica
+                      ? 'border-heaven-lilac bg-heaven-lilac text-heaven-bg-dark'
+                      : 'border-heaven-divider bg-heaven-bg-dark text-heaven-muted hover:border-heaven-lilac hover:text-heaven-lilac'
+                  }`}
+                >
+                  {tecnica}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Botones de acción */}

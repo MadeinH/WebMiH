@@ -19,7 +19,7 @@ export default function NotFound() {
         </h1>
         <p className="text-heaven-muted mb-8 leading-relaxed">
           La página que buscas no existe o fue movida.
-          Explora nuestro catálogo de prendas geek y anime.
+          Explora nuestro catálogo de prendas y accesorios personalizados.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link

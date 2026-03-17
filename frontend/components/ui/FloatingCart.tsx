@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useCart } from '@/lib/cart-context'
 import CTAButton from '@/components/ui/CTAButton'
-import { formatCOP } from '@/lib/utils'
 import { buildWhatsAppUrl } from '@/lib/whatsapp'
 
 /**
@@ -14,16 +13,21 @@ export default function FloatingCart() {
   const { items, removeItem, clearCart, totalItems } = useCart()
   const [isOpen, setIsOpen] = useState(false)
 
+  useEffect(() => {
+    function handleOpenCart() {
+      setIsOpen(true)
+    }
+
+    window.addEventListener('mih:open-cart', handleOpenCart)
+    return () => window.removeEventListener('mih:open-cart', handleOpenCart)
+  }, [])
+
   // Calcular total simplificado (suma cantidad * 1 como base)
   // En realidad necesitaría el precio de cada item, que no almacenamos en cart
   const cartSummary = items.map((item, idx) => ({
     ...item,
     index: idx,
   }))
-
-  if (!isOpen && totalItems === 0) {
-    return null // No mostrar nada si carrito vacío y cerrado
-  }
 
   return (
     <>
@@ -91,7 +95,7 @@ export default function FloatingCart() {
                       {item.nombre}
                     </p>
                     <p className="text-xs text-heaven-muted">
-                      Material: {item.variantes}
+                      {item.variantes}
                     </p>
                     <p className="text-xs text-heaven-lilac font-semibold mt-1">
                       Cantidad: {item.cantidad}

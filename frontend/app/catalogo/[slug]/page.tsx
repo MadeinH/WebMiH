@@ -5,12 +5,10 @@ import Badge from '@/components/ui/Badge'
 import ProductQuotationForm from '@/components/ui/ProductQuotationForm'
 import CTAButton from '@/components/ui/CTAButton'
 import {
-  getAccessoryItemBySlug,
-  getAccessoryItems,
   getCatalogItemBySlug,
   getCatalogItems,
 } from '@/lib/content/repository'
-import { buildProductoUrl, buildWhatsAppUrl } from '@/lib/whatsapp'
+import { buildProductoUrl } from '@/lib/whatsapp'
 
 interface ProductoPageProps {
   params: { slug: string }
@@ -18,15 +16,13 @@ interface ProductoPageProps {
 
 /** Pre-genera páginas de producto activas en build time */
 export async function generateStaticParams() {
-  const [catalog, accessories] = await Promise.all([getCatalogItems(), getAccessoryItems()])
-  return [...catalog, ...accessories].map((item) => ({ slug: item.slug }))
+  const catalog = await getCatalogItems()
+  return catalog.map((item) => ({ slug: item.slug }))
 }
 
 /** Metadata dinámica para SEO */
 export async function generateMetadata({ params }: ProductoPageProps): Promise<Metadata> {
-  const producto =
-    (await getCatalogItemBySlug(params.slug)) ??
-    (await getAccessoryItemBySlug(params.slug))
+  const producto = await getCatalogItemBySlug(params.slug)
 
   if (!producto) {
     return { title: 'Producto no encontrado' }
@@ -52,9 +48,7 @@ function hasPrices(item: {
 
 /** Página de producto individual */
 export default async function ProductoPage({ params }: ProductoPageProps) {
-  const producto =
-    (await getCatalogItemBySlug(params.slug)) ??
-    (await getAccessoryItemBySlug(params.slug))
+  const producto = await getCatalogItemBySlug(params.slug)
 
   if (!producto) {
     return (

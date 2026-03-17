@@ -8,6 +8,12 @@ export interface PriceMatrix {
   mayoreo12: number | null
 }
 
+/** Variante de precio por tamaño, tipo o presentación (ej: accesorios con múltiples medidas) */
+export interface PriceVariant {
+  label: string
+  price: number | null
+}
+
 export interface ManagedItem {
   id: string
   type: ManagedItemType
@@ -22,6 +28,8 @@ export interface ManagedItem {
   imagenUrl: string | null
   featured: boolean
   priceMatrix: PriceMatrix
+  /** Variantes de precio por tamaño/tipo (opcional, principalmente para accesorios) */
+  variants?: PriceVariant[]
 }
 
 export interface SiteContent {
@@ -31,6 +39,7 @@ export interface SiteContent {
   outOfCatalogTitle: string
   outOfCatalogDescription: string
   featuredProductSlugs: string[]
+  bannerImages: string[]
 }
 
 export interface AdminContentSnapshot {

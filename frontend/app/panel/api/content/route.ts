@@ -43,6 +43,11 @@ export async function PUT(request: Request) {
     )
   }
 
-  const saved = await saveAdminContent(parsed.data)
-  return NextResponse.json(saved, { headers: { 'Cache-Control': 'no-store' } })
+  try {
+    const saved = await saveAdminContent(parsed.data)
+    return NextResponse.json(saved, { headers: { 'Cache-Control': 'no-store' } })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'No se pudo persistir el contenido del panel.'
+    return NextResponse.json({ error: message }, { status: 500, headers: { 'Cache-Control': 'no-store' } })
+  }
 }

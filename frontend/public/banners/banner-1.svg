@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="t1 d1">
+  <title id="t1">Banner 1</title>
+  <desc id="d1">Coleccion urbana personalizada</desc>
+  <defs>
+    <linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#13111d"/>
+      <stop offset="45%" stop-color="#2b1f3a"/>
+      <stop offset="100%" stop-color="#103133"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg1)"/>
+  <circle cx="1270" cy="240" r="220" fill="#dbb8f0" fill-opacity="0.2"/>
+  <circle cx="260" cy="770" r="260" fill="#b5e7dc" fill-opacity="0.15"/>
+  <rect x="120" y="180" width="600" height="640" rx="36" fill="#181626" stroke="#4a425d"/>
+  <rect x="860" y="120" width="620" height="760" rx="42" fill="#151324" stroke="#5a4d73"/>
+  <text x="180" y="300" fill="#f7f8fa" font-size="62" font-family="Arial, sans-serif" font-weight="700">MADE IN HEAVEN</text>
+  <text x="180" y="380" fill="#bfc4d0" font-size="44" font-family="Arial, sans-serif">Catalogo Urbano</text>
+  <text x="180" y="470" fill="#bfc4d0" font-size="34" font-family="Arial, sans-serif">Prendas personalizadas para tu marca</text>
+  <text x="920" y="860" fill="#dbb8f0" font-size="30" font-family="Arial, sans-serif">DTF · Serigrafia · Bordado</text>
+</svg>

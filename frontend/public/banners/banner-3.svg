@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="t3 d3">
+  <title id="t3">Banner 3</title>
+  <desc id="d3">Accesorios personalizados para empresas</desc>
+  <defs>
+    <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#191225"/>
+      <stop offset="35%" stop-color="#3a1f3a"/>
+      <stop offset="100%" stop-color="#1a2f36"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg3)"/>
+  <rect x="120" y="120" width="1360" height="760" rx="46" fill="#100f1c" stroke="#514267"/>
+  <circle cx="360" cy="500" r="170" fill="#dbb8f0" fill-opacity="0.24"/>
+  <circle cx="760" cy="500" r="170" fill="#b5e7dc" fill-opacity="0.24"/>
+  <circle cx="1160" cy="500" r="170" fill="#f4b9c6" fill-opacity="0.24"/>
+  <text x="180" y="270" fill="#f7f8fa" font-size="72" font-family="Arial, sans-serif" font-weight="700">ACCESORIOS PERSONALIZADOS</text>
+  <text x="180" y="350" fill="#bfc4d0" font-size="40" font-family="Arial, sans-serif">Cuadros, posters, termos, gorras, mousepad y mas</text>
+  <text x="180" y="810" fill="#b5e7dc" font-size="32" font-family="Arial, sans-serif">Minimo 2 unidades en linea de accesorios</text>
+</svg>

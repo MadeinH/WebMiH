@@ -12,7 +12,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroSection description={site.heroDescription} />
+      <HeroSection description={site.heroDescription} bannerImages={site.bannerImages} />
       <GlowDivider />
       <CategoriasGrid />
       <GlowDivider />

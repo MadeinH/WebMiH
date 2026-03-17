@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Badge from '@/components/ui/Badge'
 import SectionWrapper from '@/components/ui/SectionWrapper'
@@ -51,6 +51,19 @@ function withFeaturedSlugs(snapshot: AdminContentSnapshot): AdminContentSnapshot
   }
 }
 
+function ensureSnapshot(snapshot: AdminContentSnapshot): AdminContentSnapshot {
+  return {
+    ...snapshot,
+    site: {
+      ...snapshot.site,
+      bannerImages:
+        Array.isArray(snapshot.site.bannerImages) && snapshot.site.bannerImages.length > 0
+          ? snapshot.site.bannerImages
+          : [...defaultAdminContent.site.bannerImages],
+    },
+  }
+}
+
 export default function PanelPage() {
   const router = useRouter()
   const [content, setContent] = useState<AdminContentSnapshot>(cloneSnapshot(defaultAdminContent))
@@ -64,7 +77,7 @@ export default function PanelPage() {
     const localDraft = localStorage.getItem(STORAGE_KEY)
     if (localDraft) {
       try {
-        setContent(JSON.parse(localDraft) as AdminContentSnapshot)
+        setContent(ensureSnapshot(JSON.parse(localDraft) as AdminContentSnapshot))
       } catch {
         localStorage.removeItem(STORAGE_KEY)
       }
@@ -82,7 +95,7 @@ export default function PanelPage() {
           setStatus(payload?.error ?? 'No se pudo cargar el contenido.')
           return
         }
-        setContent(payload)
+        setContent(ensureSnapshot(payload))
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
         setStatus('Contenido listo para editar.')
       } catch {
@@ -138,6 +151,7 @@ export default function PanelPage() {
   async function uploadImage(type: ManagedItemType, index: number, file: File) {
     const formData = new FormData()
     formData.append('file', file)
+    formData.append('folder', type === 'catalog' ? 'catalog' : 'accessories')
 
     setStatus('Subiendo imagen...')
     const response = await fetch('/panel/api/media/upload', {
@@ -154,6 +168,38 @@ export default function PanelPage() {
     const item = (type === 'catalog' ? content.catalog : content.accessories)[index]
     updateItem(type, index, { ...item, imagenUrl: payload.url })
     setStatus('Imagen cargada correctamente.')
+  }
+
+  async function uploadBannerImage(index: number, file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('folder', 'banners')
+
+    setStatus('Subiendo banner...')
+    const response = await fetch('/panel/api/media/upload', {
+      method: 'POST',
+      body: formData,
+    })
+
+    const payload = await response.json().catch(() => null)
+    if (!response.ok || !payload?.url) {
+      setStatus(payload?.error ?? 'No se pudo subir el banner.')
+      return
+    }
+
+    setContent((current) => {
+      const nextBanners = [...current.site.bannerImages]
+      nextBanners[index] = payload.url
+      return {
+        ...current,
+        site: {
+          ...current.site,
+          bannerImages: nextBanners,
+        },
+      }
+    })
+
+    setStatus('Banner cargado correctamente.')
   }
 
   async function saveContent() {
@@ -179,7 +225,7 @@ export default function PanelPage() {
         return
       }
 
-      setContent(data)
+      setContent(ensureSnapshot(data))
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
       setStatus('Cambios guardados correctamente.')
     } catch {
@@ -293,6 +339,37 @@ export default function PanelPage() {
                   className="min-h-20 rounded-xl border border-heaven-divider bg-heaven-bg-dark px-4 py-3 text-sm text-heaven-text"
                 />
               </div>
+
+              <div className="md:col-span-2 rounded-xl border border-heaven-divider bg-heaven-bg-dark/50 p-4">
+                <p className="mb-3 text-sm font-semibold text-heaven-text">Banners Home (Hero)</p>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {content.site.bannerImages.map((banner, index) => (
+                    <div key={`banner-${index}`} className="space-y-2">
+                      <input
+                        value={banner}
+                        onChange={(event) => {
+                          const next = [...content.site.bannerImages]
+                          next[index] = event.target.value
+                          updateSiteField('bannerImages', next)
+                        }}
+                        placeholder={`URL banner ${index + 1}`}
+                        className="w-full rounded-lg border border-heaven-divider bg-heaven-bg-dark px-3 py-2 text-xs text-heaven-text"
+                      />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0]
+                          if (file) {
+                            void uploadBannerImage(index, file)
+                          }
+                        }}
+                        className="w-full text-xs text-heaven-muted"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </section>
 
@@ -314,6 +391,17 @@ export default function PanelPage() {
             onUpload={(index, file) => uploadImage('accessory', index, file)}
           />
         </div>
+
+        <div className="fixed bottom-6 right-6 z-40">
+          <button
+            type="button"
+            onClick={saveContent}
+            disabled={loading || saving}
+            className="rounded-full bg-heaven-lilac px-6 py-3 text-sm font-semibold text-heaven-bg-dark shadow-heaven-cta disabled:opacity-60"
+          >
+            {saving ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+        </div>
       </div>
     </SectionWrapper>
   )
@@ -334,144 +422,358 @@ function ItemCollectionEditor({
   onChange: (index: number, item: ManagedItem) => void
   onUpload: (index: number, file: File) => void
 }) {
+  const [query, setQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [featuredFilter, setFeaturedFilter] = useState<'all' | 'featured' | 'normal'>('all')
+  const [quoteFilter, setQuoteFilter] = useState<'all' | 'yes' | 'no'>('all')
+  const [priceOrder, setPriceOrder] = useState<'default' | 'asc'>('default')
+  const [expandedId, setExpandedId] = useState<string | null>(items[0]?.id ?? null)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+
+  const visibleItems = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase()
+
+    const filtered = items
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => {
+        if (statusFilter === 'active' && !item.activo) return false
+        if (statusFilter === 'inactive' && item.activo) return false
+
+        if (featuredFilter === 'featured' && !item.featured) return false
+        if (featuredFilter === 'normal' && item.featured) return false
+
+        if (quoteFilter === 'yes' && !item.soloCotizar) return false
+        if (quoteFilter === 'no' && item.soloCotizar) return false
+
+        if (!normalizedQuery) return true
+
+        const haystack = [item.nombre, item.slug, item.subcategoria, item.material, item.descripcion]
+          .join(' ')
+          .toLowerCase()
+
+        return haystack.includes(normalizedQuery)
+      })
+
+    if (priceOrder === 'asc') {
+      const basePrice = (product: ManagedItem): number => {
+        const candidates = [
+          product.priceMatrix.detalCarta,
+          product.priceMatrix.detalEstandar,
+          product.priceMatrix.mayoreo3,
+          product.priceMatrix.mayoreo6,
+          product.priceMatrix.mayoreo12,
+        ].filter((value): value is number => typeof value === 'number')
+
+        if (candidates.length === 0) return Number.MAX_SAFE_INTEGER
+        return Math.min(...candidates)
+      }
+
+      return [...filtered].sort((a, b) => basePrice(a.item) - basePrice(b.item))
+    }
+
+    return filtered
+  }, [featuredFilter, items, priceOrder, query, quoteFilter, statusFilter])
+
+  function toggleSelection(itemId: string) {
+    setSelectedIds((current) =>
+      current.includes(itemId) ? current.filter((id) => id !== itemId) : [...current, itemId],
+    )
+  }
+
+  function toggleSelectAllVisible() {
+    const visibleIds = visibleItems.map(({ item }) => item.id)
+    const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id))
+
+    if (allSelected) {
+      setSelectedIds((current) => current.filter((id) => !visibleIds.includes(id)))
+      return
+    }
+
+    setSelectedIds((current) => Array.from(new Set([...current, ...visibleIds])))
+  }
+
+  function setSelectedActiveState(nextActive: boolean) {
+    for (const selectedId of selectedIds) {
+      const index = items.findIndex((candidate) => candidate.id === selectedId)
+      if (index < 0) continue
+      const selected = items[index]
+      onChange(index, { ...selected, activo: nextActive })
+    }
+  }
+
+  function formatCurrency(value: number | null): string {
+    if (typeof value !== 'number') return '—'
+    return `$${value.toLocaleString('es-CO')}`
+  }
+
   return (
     <section className="rounded-3xl border border-heaven-divider bg-heaven-bg-card p-6 shadow-heaven-card">
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="font-display text-2xl uppercase tracking-wide text-heaven-text">{title}</h2>
-        <button
-          type="button"
-          onClick={onAdd}
-          className="rounded-lg border border-heaven-divider px-4 py-2 text-sm text-heaven-text"
-        >
-          Agregar
-        </button>
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-2xl uppercase tracking-wide text-heaven-text">{title}</h2>
+          <button
+            type="button"
+            onClick={onAdd}
+            className="rounded-lg border border-heaven-divider px-4 py-2 text-sm text-heaven-text"
+          >
+            Agregar
+          </button>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar por nombre, slug, subcategoría..."
+            className="rounded-lg border border-heaven-divider bg-heaven-bg-dark px-3 py-2 text-sm text-heaven-text"
+          />
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value as 'all' | 'active' | 'inactive')}
+            className="rounded-lg border border-heaven-divider bg-heaven-bg-dark px-3 py-2 text-sm text-heaven-text"
+          >
+            <option value="all">Todos los estados</option>
+            <option value="active">Solo activos</option>
+            <option value="inactive">Solo inactivos</option>
+          </select>
+          <select
+            value={featuredFilter}
+            onChange={(event) => setFeaturedFilter(event.target.value as 'all' | 'featured' | 'normal')}
+            className="rounded-lg border border-heaven-divider bg-heaven-bg-dark px-3 py-2 text-sm text-heaven-text"
+          >
+            <option value="all">Todos</option>
+            <option value="featured">Solo destacados</option>
+            <option value="normal">No destacados</option>
+          </select>
+          <select
+            value={quoteFilter}
+            onChange={(event) => setQuoteFilter(event.target.value as 'all' | 'yes' | 'no')}
+            className="rounded-lg border border-heaven-divider bg-heaven-bg-dark px-3 py-2 text-sm text-heaven-text"
+          >
+            <option value="all">Con y sin cotización</option>
+            <option value="yes">Solo cotización</option>
+            <option value="no">Con precios</option>
+          </select>
+          <select
+            value={priceOrder}
+            onChange={(event) => setPriceOrder(event.target.value as 'default' | 'asc')}
+            className="rounded-lg border border-heaven-divider bg-heaven-bg-dark px-3 py-2 text-sm text-heaven-text"
+          >
+            <option value="default">Orden original</option>
+            <option value="asc">Precio: menor a mayor</option>
+          </select>
+        </div>
+
+        <p className="text-xs text-heaven-muted">
+          Mostrando {visibleItems.length} de {items.length} elementos.
+        </p>
+
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-heaven-divider bg-heaven-bg-dark/50 p-3">
+          <button
+            type="button"
+            onClick={toggleSelectAllVisible}
+            className="rounded-lg border border-heaven-divider px-3 py-2 text-xs text-heaven-text"
+          >
+            Seleccionar visibles
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedActiveState(true)}
+            disabled={selectedIds.length === 0}
+            className="rounded-lg border border-heaven-divider px-3 py-2 text-xs text-heaven-text disabled:opacity-40"
+          >
+            Activar seleccionados
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedActiveState(false)}
+            disabled={selectedIds.length === 0}
+            className="rounded-lg border border-heaven-rose/40 px-3 py-2 text-xs text-heaven-rose disabled:opacity-40"
+          >
+            Desactivar seleccionados
+          </button>
+          <p className="text-xs text-heaven-muted">{selectedIds.length} seleccionados</p>
+        </div>
       </div>
 
       <div className="mt-6 space-y-4">
-        {items.map((item, index) => (
-          <article key={item.id} className="rounded-2xl border border-heaven-divider bg-heaven-bg-dark p-4">
-            <div className="grid gap-3 md:grid-cols-2">
-              <input
-                value={item.nombre}
-                onChange={(event) => onChange(index, { ...item, nombre: event.target.value })}
-                placeholder="Nombre"
-                className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
-              />
-              <input
-                value={item.slug}
-                onChange={(event) => onChange(index, { ...item, slug: event.target.value })}
-                placeholder="slug"
-                className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
-              />
-              <input
-                value={item.subcategoria}
-                onChange={(event) => onChange(index, { ...item, subcategoria: event.target.value })}
-                placeholder="Subcategoría"
-                className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
-              />
-              <input
-                value={item.material}
-                onChange={(event) => onChange(index, { ...item, material: event.target.value })}
-                placeholder="Material"
-                className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
-              />
-              <input
-                value={item.horma}
-                onChange={(event) => onChange(index, { ...item, horma: event.target.value })}
-                placeholder="Horma"
-                className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
-              />
-              <input
-                value={item.imagenUrl ?? ''}
-                onChange={(event) => onChange(index, { ...item, imagenUrl: event.target.value || null })}
-                placeholder="URL imagen"
-                className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
-              />
-            </div>
-
-            <textarea
-              value={item.descripcion}
-              onChange={(event) => onChange(index, { ...item, descripcion: event.target.value })}
-              placeholder="Descripción"
-              className="mt-3 min-h-24 w-full rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
-            />
-
-            <div className="mt-3 grid gap-3 md:grid-cols-5">
-              {[
-                ['detalCarta', '1-2 carta'],
-                ['detalEstandar', '1-2 estándar'],
-                ['mayoreo3', '3+'],
-                ['mayoreo6', '6+'],
-                ['mayoreo12', '12+'],
-              ].map(([key, label]) => (
-                <input
-                  key={key}
-                  type="number"
-                  value={item.priceMatrix[key as keyof ManagedItem['priceMatrix']] ?? ''}
-                  onChange={(event) =>
-                    onChange(index, {
-                      ...item,
-                      priceMatrix: {
-                        ...item.priceMatrix,
-                        [key]: event.target.value ? Number(event.target.value) : null,
-                      },
-                    })
-                  }
-                  placeholder={label}
-                  className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
-                />
-              ))}
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-2 text-xs text-heaven-muted">
-                <input
-                  type="checkbox"
-                  checked={item.soloCotizar}
-                  onChange={(event) => onChange(index, { ...item, soloCotizar: event.target.checked })}
-                />
-                Solo cotizar
-              </label>
-              <label className="flex items-center gap-2 text-xs text-heaven-muted">
-                <input
-                  type="checkbox"
-                  checked={item.activo}
-                  onChange={(event) => onChange(index, { ...item, activo: event.target.checked })}
-                />
-                Activo
-              </label>
-              <label className="flex items-center gap-2 text-xs text-heaven-muted">
-                <input
-                  type="checkbox"
-                  checked={item.featured}
-                  onChange={(event) => onChange(index, { ...item, featured: event.target.checked })}
-                />
-                Destacado
-              </label>
-              <label className="text-xs text-heaven-muted">
-                <span className="mr-2">Subir imagen</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0]
-                    if (file) {
-                      void onUpload(index, file)
-                    }
-                  }}
-                  className="text-xs"
-                />
-              </label>
-              <button
-                type="button"
-                onClick={() => onRemove(index)}
-                className="ml-auto rounded-lg border border-heaven-rose/40 px-3 py-2 text-xs text-heaven-rose"
-              >
-                Eliminar
-              </button>
-            </div>
+        {visibleItems.length === 0 && (
+          <article className="rounded-2xl border border-dashed border-heaven-divider bg-heaven-bg-dark p-6 text-center text-sm text-heaven-muted">
+            No hay elementos que coincidan con los filtros.
           </article>
-        ))}
+        )}
+
+        {visibleItems.map(({ item, index }) => {
+          const isExpanded = expandedId === item.id
+
+          return (
+            <article key={item.id} className="rounded-2xl border border-heaven-divider bg-heaven-bg-dark p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(item.id)}
+                      onChange={() => toggleSelection(item.id)}
+                      aria-label={`Seleccionar ${item.nombre || item.slug || item.id}`}
+                    />
+                    <p className="truncate text-sm font-semibold text-heaven-text">
+                      {item.nombre || 'Sin nombre'}
+                    </p>
+                    {item.activo ? (
+                      <Badge variant="mint">Activo</Badge>
+                    ) : (
+                      <Badge variant="rose">Inactivo</Badge>
+                    )}
+                    {item.featured && <Badge variant="lilac">Destacado</Badge>}
+                    {item.soloCotizar && <Badge variant="lilac">Solo cotizar</Badge>}
+                  </div>
+                  <p className="mt-1 text-xs text-heaven-muted">
+                    /{item.slug || 'sin-slug'} · {item.subcategoria || 'sin subcategoría'}
+                  </p>
+                  <p className="mt-2 text-xs text-heaven-muted">
+                    Carta: {formatCurrency(item.priceMatrix.detalCarta)} · Estándar: {formatCurrency(item.priceMatrix.detalEstandar)} · 3+: {formatCurrency(item.priceMatrix.mayoreo3)}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                    className="rounded-lg border border-heaven-divider px-3 py-2 text-xs text-heaven-text"
+                  >
+                    {isExpanded ? 'Ocultar' : 'Editar'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onRemove(index)}
+                    className="rounded-lg border border-heaven-rose/40 px-3 py-2 text-xs text-heaven-rose"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+
+              {isExpanded && (
+                <div className="mt-4 space-y-4 border-t border-heaven-divider pt-4">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <input
+                      value={item.nombre}
+                      onChange={(event) => onChange(index, { ...item, nombre: event.target.value })}
+                      placeholder="Nombre"
+                      className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
+                    />
+                    <input
+                      value={item.slug}
+                      onChange={(event) => onChange(index, { ...item, slug: event.target.value })}
+                      placeholder="slug"
+                      className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
+                    />
+                    <input
+                      value={item.subcategoria}
+                      onChange={(event) => onChange(index, { ...item, subcategoria: event.target.value })}
+                      placeholder="Subcategoría"
+                      className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
+                    />
+                    <input
+                      value={item.material}
+                      onChange={(event) => onChange(index, { ...item, material: event.target.value })}
+                      placeholder="Material"
+                      className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
+                    />
+                    <input
+                      value={item.horma}
+                      onChange={(event) => onChange(index, { ...item, horma: event.target.value })}
+                      placeholder="Horma"
+                      className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
+                    />
+                    <input
+                      value={item.imagenUrl ?? ''}
+                      onChange={(event) => onChange(index, { ...item, imagenUrl: event.target.value || null })}
+                      placeholder="URL imagen"
+                      className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
+                    />
+                  </div>
+
+                  <textarea
+                    value={item.descripcion}
+                    onChange={(event) => onChange(index, { ...item, descripcion: event.target.value })}
+                    placeholder="Descripción"
+                    className="min-h-24 w-full rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
+                  />
+
+                  <div className="grid gap-3 md:grid-cols-5">
+                    {[
+                      ['detalCarta', '1-2 carta'],
+                      ['detalEstandar', '1-2 estándar'],
+                      ['mayoreo3', '3+'],
+                      ['mayoreo6', '6+'],
+                      ['mayoreo12', '12+'],
+                    ].map(([key, label]) => (
+                      <input
+                        key={key}
+                        type="number"
+                        value={item.priceMatrix[key as keyof ManagedItem['priceMatrix']] ?? ''}
+                        onChange={(event) =>
+                          onChange(index, {
+                            ...item,
+                            priceMatrix: {
+                              ...item.priceMatrix,
+                              [key]: event.target.value ? Number(event.target.value) : null,
+                            },
+                          })
+                        }
+                        placeholder={label}
+                        className="rounded-lg border border-heaven-divider bg-heaven-bg-card px-3 py-2 text-sm text-heaven-text"
+                      />
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4">
+                    <label className="flex items-center gap-2 text-xs text-heaven-muted">
+                      <input
+                        type="checkbox"
+                        checked={item.soloCotizar}
+                        onChange={(event) => onChange(index, { ...item, soloCotizar: event.target.checked })}
+                      />
+                      Solo cotizar
+                    </label>
+                    <label className="flex items-center gap-2 text-xs text-heaven-muted">
+                      <input
+                        type="checkbox"
+                        checked={item.activo}
+                        onChange={(event) => onChange(index, { ...item, activo: event.target.checked })}
+                      />
+                      Activo
+                    </label>
+                    <label className="flex items-center gap-2 text-xs text-heaven-muted">
+                      <input
+                        type="checkbox"
+                        checked={item.featured}
+                        onChange={(event) => onChange(index, { ...item, featured: event.target.checked })}
+                      />
+                      Destacado
+                    </label>
+                    <label className="text-xs text-heaven-muted">
+                      <span className="mr-2">Subir imagen</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0]
+                          if (file) {
+                            void onUpload(index, file)
+                          }
+                        }}
+                        className="text-xs"
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+            </article>
+          )
+        })}
       </div>
     </section>
   )

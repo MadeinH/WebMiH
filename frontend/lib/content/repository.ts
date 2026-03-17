@@ -1,4 +1,4 @@
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_noStore as noStore } from 'next/cache'
 import { defaultAdminContent } from '@/lib/content/default-content'
 import type { AdminContentSnapshot, ManagedItem } from '@/lib/content/types'
 import { createServerClient } from '@/lib/supabase/server'
@@ -35,10 +35,15 @@ function normalizeItem(item: ManagedItem): ManagedItem {
 }
 
 function normalizeSnapshot(snapshot: AdminContentSnapshot): AdminContentSnapshot {
+  const bannerImages = Array.isArray(snapshot.site.bannerImages)
+    ? snapshot.site.bannerImages.filter((value) => typeof value === 'string' && value.length > 0)
+    : []
+
   return {
     site: {
       ...snapshot.site,
       featuredProductSlugs: [...snapshot.site.featuredProductSlugs],
+      bannerImages: bannerImages.length > 0 ? bannerImages : [...defaultAdminContent.site.bannerImages],
     },
     catalog: snapshot.catalog.map(normalizeItem),
     accessories: snapshot.accessories.map(normalizeItem),
@@ -88,6 +93,10 @@ function readSiteContentFromRow(row: CmsSiteRow | null): AdminContentSnapshot['s
       defaultAdminContent.site.outOfCatalogDescription,
     featuredProductSlugs:
       row.featured_product_slugs ?? featuredFromJson ?? defaultAdminContent.site.featuredProductSlugs,
+    bannerImages:
+      Array.isArray(fromJson?.bannerImages)
+        ? fromJson.bannerImages.filter((value): value is string => typeof value === 'string')
+        : defaultAdminContent.site.bannerImages,
   }
 }
 
@@ -176,71 +185,69 @@ async function loadSnapshotFromSupabase(): Promise<AdminContentSnapshot | null> 
 
 async function persistSnapshotToSupabase(snapshot: AdminContentSnapshot): Promise<void> {
   if (!hasSupabaseServerConfig()) {
-    memorySnapshot = cloneSnapshot(snapshot)
-    return
+    throw new Error('Falta SUPABASE_SERVICE_ROLE_KEY para persistir cambios del panel.')
   }
 
-  try {
-    const supabase = createServerClient()
-    const nowIso = new Date().toISOString()
-    const allItems = [...snapshot.catalog, ...snapshot.accessories]
+  const supabase = createServerClient()
+  const nowIso = new Date().toISOString()
+  const allItems = [...snapshot.catalog, ...snapshot.accessories]
 
-    await supabase.from('cms_site_content').upsert(
-      {
-        id: 'site',
-        hero_description: snapshot.site.heroDescription,
-        catalog_intro: snapshot.site.catalogoIntro,
-        accessories_intro: snapshot.site.accesoriosIntro,
-        out_of_catalog_title: snapshot.site.outOfCatalogTitle,
-        out_of_catalog_description: snapshot.site.outOfCatalogDescription,
-        featured_product_slugs: snapshot.site.featuredProductSlugs,
-        updated_at: nowIso,
+  await supabase.from('cms_site_content').upsert(
+    {
+      id: 'site',
+      hero_description: snapshot.site.heroDescription,
+      catalog_intro: snapshot.site.catalogoIntro,
+      accessories_intro: snapshot.site.accesoriosIntro,
+      out_of_catalog_title: snapshot.site.outOfCatalogTitle,
+      out_of_catalog_description: snapshot.site.outOfCatalogDescription,
+      featured_product_slugs: snapshot.site.featuredProductSlugs,
+      content: {
+        bannerImages: snapshot.site.bannerImages,
       },
-      { onConflict: 'id' },
-    )
-
-    const productRows = allItems.map((item, index) => ({
-      id: item.id,
-      slug: item.slug,
-      nombre: item.nombre,
-      descripcion: item.descripcion,
-      categoria: item.type === 'accessory' ? 'accesorios' : 'prendas',
-      subcategoria: item.subcategoria || null,
-      material: item.material || null,
-      horma: item.horma || null,
-      solo_cotizar: item.soloCotizar,
-      activo: item.activo,
-      image_url: item.imagenUrl,
-      media_urls: item.imagenUrl ? [item.imagenUrl] : [],
-      sort_order: index,
-    }))
-
-    await supabase.from('productos').upsert(productRows, { onConflict: 'id' })
-
-    const priceRows = allItems.map((item) => ({
-      producto_id: item.id,
-      detal_carta: item.priceMatrix.detalCarta,
-      detal_estandar: item.priceMatrix.detalEstandar,
-      mayoreo_3: item.priceMatrix.mayoreo3,
-      mayoreo_6: item.priceMatrix.mayoreo6,
-      mayoreo_12: item.priceMatrix.mayoreo12,
       updated_at: nowIso,
-    }))
+    },
+    { onConflict: 'id' },
+  )
 
-    await supabase.from('precios').upsert(priceRows, { onConflict: 'producto_id' })
+  const productRows = allItems.map((item, index) => ({
+    id: item.id,
+    slug: item.slug,
+    nombre: item.nombre,
+    descripcion: item.descripcion,
+    categoria: item.type === 'accessory' ? 'accesorios' : 'prendas',
+    subcategoria: item.subcategoria || null,
+    material: item.material || null,
+    horma: item.horma || null,
+    solo_cotizar: item.soloCotizar,
+    activo: item.activo,
+    image_url: item.imagenUrl,
+    media_urls: item.imagenUrl ? [item.imagenUrl] : [],
+    sort_order: index,
+  }))
 
-    await supabase.from('cms_audit_logs').insert({
-      action: 'admin_content_saved',
-      payload_summary: { updatedAt: snapshot.updatedAt, itemCount: allItems.length },
-      created_at: nowIso,
-    })
-  } catch (error) {
-    console.warn('[CMS_PERSIST_FALLBACK_MEMORY]', error)
-    memorySnapshot = cloneSnapshot(snapshot)
-  }
+  await supabase.from('productos').upsert(productRows, { onConflict: 'id' })
+
+  const priceRows = allItems.map((item) => ({
+    producto_id: item.id,
+    detal_carta: item.priceMatrix.detalCarta,
+    detal_estandar: item.priceMatrix.detalEstandar,
+    mayoreo_3: item.priceMatrix.mayoreo3,
+    mayoreo_6: item.priceMatrix.mayoreo6,
+    mayoreo_12: item.priceMatrix.mayoreo12,
+    updated_at: nowIso,
+  }))
+
+  await supabase.from('precios').upsert(priceRows, { onConflict: 'producto_id' })
+
+  await supabase.from('cms_audit_logs').insert({
+    action: 'admin_content_saved',
+    payload_summary: { updatedAt: snapshot.updatedAt, itemCount: allItems.length },
+    created_at: nowIso,
+  })
 }
 
 export async function getAdminContent(): Promise<AdminContentSnapshot> {
+  noStore()
   try {
     const snapshot = await loadSnapshotFromSupabase()
     if (snapshot) {
@@ -271,26 +278,32 @@ export async function saveAdminContent(snapshot: AdminContentSnapshot): Promise<
 }
 
 export async function getSiteContent() {
+  noStore()
   return (await getAdminContent()).site
 }
 
 export async function getCatalogItems() {
+  noStore()
   return (await getAdminContent()).catalog.filter((item) => item.activo)
 }
 
 export async function getCatalogItemBySlug(slug: string) {
+  noStore()
   return (await getAdminContent()).catalog.find((item) => item.slug === slug) ?? null
 }
 
 export async function getAccessoryItems() {
+  noStore()
   return (await getAdminContent()).accessories.filter((item) => item.activo)
 }
 
 export async function getAccessoryItemBySlug(slug: string) {
+  noStore()
   return (await getAdminContent()).accessories.find((item) => item.slug === slug) ?? null
 }
 
 export async function getFeaturedProducts() {
+  noStore()
   const snapshot = await getAdminContent()
   const all = [...snapshot.catalog, ...snapshot.accessories].filter((item) => item.activo)
   return snapshot.site.featuredProductSlugs

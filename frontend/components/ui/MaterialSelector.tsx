@@ -10,9 +10,9 @@ interface MaterialSelectorProps {
 }
 
 /**
- * Selector de material — extrae opciones del texto y permite seleccionar
+ * Selector de material — extrae opciones del texto y permite seleccionar visualmente
  */
-export default function MaterialSelector({ materialesText, value,onChange }: MaterialSelectorProps) {
+export default function MaterialSelector({ materialesText, value, onChange }: MaterialSelectorProps) {
   // Extraer opciones del texto (ej: Algodón / Piel → [Algodón, Piel])
   const opciones = materialesText
     .split('/')
@@ -31,24 +31,28 @@ export default function MaterialSelector({ materialesText, value,onChange }: Mat
     )
   }
 
-  // Si hay múltiples opciones, mostrar selector
+  // Si hay múltiples opciones, mostrar selector visual (pills)
   return (
-    <div className="space-y-2">
-      <label htmlFor="material" className="block text-sm font-medium text-heaven-text">
+    <div className="space-y-3">
+      <label className="block text-sm font-medium text-heaven-text">
         Material deseado
       </label>
-      <select
-        id="material"
-        value={value || opciones[0]}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-heaven-divider bg-heaven-bg-dark px-4 py-3 text-sm text-heaven-text transition-colors hover:border-heaven-lilac focus:border-heaven-lilac focus:outline-none focus:ring-1 focus:ring-heaven-lilac"
-      >
+      <div className="flex flex-wrap gap-2">
         {opciones.map((opt) => (
-          <option key={opt} value={opt}>
+          <button
+            key={opt}
+            type="button"
+            onClick={() => onChange(opt)}
+            className={`rounded-full border-2 px-4 py-2 text-sm font-medium transition-all ${
+              value === opt
+                ? 'border-heaven-lilac bg-heaven-lilac text-heaven-bg-dark'
+                : 'border-heaven-divider bg-heaven-bg-dark text-heaven-text hover:border-heaven-lilac hover:text-heaven-lilac'
+            }`}
+          >
             {opt}
-          </option>
+          </button>
         ))}
-      </select>
+      </div>
     </div>
   )
 }

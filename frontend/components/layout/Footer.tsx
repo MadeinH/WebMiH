@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import GlowDivider from '@/components/ui/GlowDivider'
 import CTAButton from '@/components/ui/CTAButton'
 import { buildWhatsAppUrl } from '@/lib/whatsapp'
@@ -34,12 +35,18 @@ export default function Footer() {
         <div className="grid gap-12 md:grid-cols-3">
           {/* Marca */}
           <div className="space-y-4">
-            <h2 className="font-display text-2xl uppercase tracking-widest text-heaven-text">
-              Made in Heaven
-            </h2>
+            <Link href="/" aria-label="Made in Heaven — Inicio">
+              <Image
+                src="/logo.png"
+                alt="Made in Heaven"
+                width={180}
+                height={44}
+                className="h-10 w-auto"
+              />
+            </Link>
             <p className="text-sm leading-relaxed text-heaven-muted">
-              Ropa y accesorios personalizados con temática geek, anime y cultura pop. 
-              Desde Colombia para todo el mundo.
+              Ropa y accesorios personalizados de calidad premium. 
+              Fabricados en Colombia para el mundo.
             </p>
             <CTAButton
               variant="whatsapp"

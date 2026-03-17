@@ -41,18 +41,17 @@ export const metadata: Metadata = {
     template: '%s | Made in Heaven',
   },
   description:
-    'Tienda colombiana de ropa y accesorios personalizados con temática geek, anime y cultura pop. Camisetas, hoodies, gorras y más con DTF, sublimación, bordado y otras técnicas.',
+    'Tienda colombiana de ropa y accesorios personalizados. Camisetas, hoodies, gorras y más con DTF, sublimación, bordado y otras técnicas.',
   keywords: [
     'ropa personalizada Colombia',
-    'camisetas anime',
-    'hoodies geek',
+    'camisetas personalizadas',
+    'hoodies personalizados',
     'accesorios personalizados',
     'estampados DTF',
     'sublimación',
     'bordado',
-    'ropa geek',
     'made in heaven',
-    'cultura pop',
+    'uniformes personalizados',
   ],
   openGraph: {
     type: 'website',
@@ -61,13 +60,13 @@ export const metadata: Metadata = {
     siteName: 'Made in Heaven',
     title: 'Made in Heaven — Ropa y Accesorios Personalizados',
     description:
-      'Personaliza camisetas, hoodies, gorras y accesorios con temática geek, anime y cultura pop. Desde Colombia.',
+      'Personaliza camisetas, hoodies, gorras y accesorios con acabados premium. Desde Colombia.',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Made in Heaven — Ropa y Accesorios Personalizados',
     description:
-      'Personaliza camisetas, hoodies, gorras y accesorios con temática geek, anime y cultura pop.',
+      'Personaliza camisetas, hoodies, gorras y accesorios con acabados premium.',
   },
   robots: {
     index: true,
@@ -85,7 +84,7 @@ const jsonLd = {
   '@type': 'LocalBusiness',
   name: 'Made in Heaven',
   description:
-    'Tienda colombiana de ropa y accesorios personalizados con temática geek, anime y cultura pop.',
+    'Tienda colombiana de ropa y accesorios personalizados.',
   url: siteUrl,
   telephone: '+573249207921',
   address: {
@@ -110,9 +109,9 @@ export default function RootLayout({
   return (
     <html lang="es" dir="ltr" className={`${bebasNeue.variable} ${dmSans.variable}`}>
       <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="alternate icon" href="/favicon.svg" />
-        <link rel="shortcut icon" href="/favicon.svg" />
+        <link rel="icon" href="/logo.png" type="image/png" />
+        <link rel="alternate icon" href="/logo.png" />
+        <link rel="shortcut icon" href="/logo.png" />
         <Script
           id="mih-jsonld"
           strategy="beforeInteractive"

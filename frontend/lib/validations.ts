@@ -41,6 +41,7 @@ export const siteContentSchema = z.object({
   outOfCatalogTitle: z.string().max(120).regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
   outOfCatalogDescription: z.string().max(400).regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
   featuredProductSlugs: z.array(z.string().regex(slugRegex, 'Slug inválido')).max(12),
+  bannerImages: z.array(z.string().url('URL de banner inválida')).min(1).max(6),
 })
 
 export const adminContentSchema = z

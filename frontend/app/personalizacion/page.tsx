@@ -15,45 +15,45 @@ const tecnicas = [
   {
     nombre: 'DTF (Direct to Film)',
     descripcion:
-      'Impresión de película directa. Permite estampados a todo color con alta resolución y durabilidad. Ideal para diseños complejos, fotografías y gradientes. Compatible con la mayoría de telas y práctico para pedidos pequeños.',
-    ideal: 'Diseños multicolor, fotos, gradientes',
-    telas: 'Algodón, poliéster, mezclas',
+      'Impresión directa a película. Los colores se transfieren a la tela mediante calor. Ideal para diseños complejos, multicolores, degradientes y fotografías. Compatible con algodón, poliéster y mezclas.',
+    ideal: 'Diseños fotográficos, multicolores, gradientes, ilustraciones',
+    telas: 'Algodón, poliéster, mezclas, algodón con elastano',
     icono: null,
     variant: 'lilac' as const,
   },
   {
     nombre: 'Sublimación',
     descripcion:
-      'Los colores se funden directamente en la fibra del tejido mediante calor. Genera un acabado suave que no se agrieta. Excelente para diseños vibrantes en prendas de colores claros.',
-    ideal: 'Diseños all-over, colores vibrantes y saturados',
-    telas: 'Poliéster y telas sintéticas',
+      'Los colores se funden directamente en las moléculas de la fibra mediante calor y presión. Resultado: colores vibrantes y duraderos. Solo efectivo en telas sintéticas o con recubrimiento especial.',
+    ideal: 'Diseños all-over, colores vibrantes, posters textiles',
+    telas: 'Poliéster 100%, camisetas de sublimación, bolsas de sublimación',
     icono: null,
     variant: 'mint' as const,
   },
   {
     nombre: 'Serigrafía',
     descripcion:
-      'Impresión por pantalla mediante plantillas. Ideal para grandes volúmenes con colores sólidos. Acabado profesional, muy duradero y económico en cantidades altas.',
-    ideal: 'Logos, textos, diseños con pocos colores, volúmenes altos',
-    telas: 'Algodón, mezclas, fibras naturales',
+      'Impresión por pantalla. Una pantalla por cada color. Excelente para volúmenes altos y colores sólidos llamativos. Acabado grueso y duradero. Ideal para logos y diseños simples.',
+    ideal: 'Logos corporativos, diseños con pocos colores, pedidos grandes (12+)',
+    telas: 'Algodón, mezclas, camisetas 100% algodón',
     icono: null,
     variant: 'rose' as const,
   },
   {
     nombre: 'Vinil Textil',
     descripcion:
-      'Material cortado con plotter y transferido con calor. Crea efecto de textura. Disponible en acabados mate, brillante y especiales. Ideal para nombres, números y logos monocromáticos.',
-    ideal: 'Nombres, números, logos de color único',
-    telas: 'Algodón, poliéster, mezclas',
+      'Se corta la lámina de vinil con un plotter y se transfiere con calor a la prenda. Efecto de relieve suave. Disponible en acabados mate, brillante y especiales (glitter, holográfico).',
+    ideal: 'Nombres, números, logos simples, diseños monocromáticos',
+    telas: 'Algodón, poliéster, mezclas, camisetas, sudaderas',
     icono: null,
     variant: 'lilac' as const,
   },
   {
     nombre: 'Bordado',
     descripcion:
-      'Acabado premium con hilo industrial. Aspecto elegante y profesional. Otorga relieve y textura tangible. Ideal para logos corporativos y diseños pequeños de alta calidad.',
-    ideal: 'Logos corporativos, emblemas, iniciales',
-    telas: 'Telas con cuerpo suficiente (algodón, telas estructuradas)',
+      'Hilo industrial sobre la tela. Crea un efecto tridimensional. Acabado profesional y premium. Muy duradero, ideal para logos corporativos y uniformes.',
+    ideal: 'Logos corporativos, uniformes, prendas premium, iniciales',
+    telas: 'Telas con cuerpo (algodón, mezclas, piqué), NO telas elásticas',
     icono: null,
     variant: 'mint' as const,
   },
@@ -111,7 +111,7 @@ export default function PersonalizacionPage() {
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <CTAButton
               variant="whatsapp"
-              href={buildWhatsAppUrl('Hola! Quiero personalizar un producto. ¿Me pueden asesorar? 🎨')}
+              href={buildWhatsAppUrl('Hola! Quiero personalizar un producto. ¿Me pueden asesorar?')}
               external
             >
               Cotiza por WhatsApp

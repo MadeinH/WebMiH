@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useCart } from '@/lib/cart-context'
 
 /** Ítems de navegación */
@@ -18,15 +19,31 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const { totalItems } = useCart()
 
+  function openFloatingCart() {
+    window.dispatchEvent(new CustomEvent('mih:open-cart'))
+  }
+
   return (
     <header className="sticky top-0 z-40 border-b border-heaven-divider bg-heaven-bg-dark/95 backdrop-blur-md">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link
           href="/"
-          className="font-display text-2xl uppercase tracking-widest text-heaven-text transition-colors hover:text-heaven-lilac"
+          className="flex items-center gap-3 transition-opacity hover:opacity-80"
+          aria-label="Made in Heaven — Inicio"
         >
-          Made in Heaven
+          <Image
+            src="/logo.png"
+            alt="Made in Heaven"
+            width={160}
+            height={38}
+            priority
+            className="h-10 w-auto"
+          />
+          <div className="leading-tight">
+            <p className="font-body text-xs uppercase tracking-[0.25em] text-heaven-muted">Made In</p>
+            <p className="font-display text-xl uppercase tracking-wide text-heaven-text">Heaven</p>
+          </div>
         </Link>
 
         {/* Navegación desktop */}
@@ -44,10 +61,11 @@ export default function Navbar() {
             ))}
           </ul>
           {/* Carrito badge */}
-          <Link
-            href="/cotizacion"
+          <button
+            type="button"
+            onClick={openFloatingCart}
             className="relative text-heaven-muted transition-colors hover:text-heaven-lilac"
-            aria-label={`Cotización: ${totalItems} productos`}
+            aria-label={`Abrir carrito flotante: ${totalItems} productos`}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
@@ -58,7 +76,7 @@ export default function Navbar() {
                 {totalItems > 99 ? '99+' : totalItems}
               </span>
             )}
-          </Link>
+          </button>
         </div>
 
         {/* Botón hamburguesa mobile */}
