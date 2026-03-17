@@ -30,7 +30,7 @@ export default function HeroSection({ description, bannerImages }: HeroSectionPr
   useEffect(() => {
     const timer = window.setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % totalSlides)
-    }, 5000)
+    }, 3000)
 
     return () => window.clearInterval(timer)
   }, [totalSlides])
@@ -40,7 +40,7 @@ export default function HeroSection({ description, bannerImages }: HeroSectionPr
   }
 
   return (
-    <section className="relative flex min-h-[85vh] items-center overflow-hidden bg-heaven-bg-dark">
+    <section className="relative flex min-h-[60vh] md:min-h-[85vh] items-center overflow-hidden bg-heaven-bg-dark">
       {/* Fondo decorativo con gradiente */}
       <div
         aria-hidden="true"
@@ -107,7 +107,7 @@ export default function HeroSection({ description, bannerImages }: HeroSectionPr
         </div>
 
         <div className="relative">
-          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl border border-heaven-divider bg-heaven-bg-card shadow-heaven-glow sm:aspect-[16/10] lg:aspect-[4/5]">
+          <div className="relative aspect-[16/9] sm:aspect-[4/5] md:aspect-[16/10] lg:aspect-[4/5] w-full overflow-hidden rounded-3xl border border-heaven-divider bg-heaven-bg-card shadow-heaven-glow">
             <Image
               key={currentBanner.src}
               src={currentBanner.src}

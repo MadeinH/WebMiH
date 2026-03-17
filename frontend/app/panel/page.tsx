@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Badge from '@/components/ui/Badge'
 import SectionWrapper from '@/components/ui/SectionWrapper'
 import { defaultAdminContent } from '@/lib/content/default-content'
+import { adminContentSchema } from '@/lib/validations'
 import type { AdminContentSnapshot, ManagedItem, ManagedItemType } from '@/lib/content/types'
 
 const STORAGE_KEY = 'mih-admin-content-v2'
@@ -72,6 +73,24 @@ export default function PanelPage() {
   const [loggingOut, setLoggingOut] = useState(false)
   const [status, setStatus] = useState('Cargando contenido del panel...')
   const [validationErrors, setValidationErrors] = useState<string[]>([])
+
+  if (loading) {
+    return (
+      <SectionWrapper>
+        <div className="space-y-8">
+          <div className="flex flex-col gap-4 rounded-3xl border border-heaven-divider bg-heaven-bg-card p-6 shadow-heaven-card lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <Badge variant="lilac">Panel Admin</Badge>
+              <h1 className="mt-4 font-display text-4xl uppercase tracking-wide text-heaven-text">
+                Cargando panel
+              </h1>
+              <p className="mt-3 text-sm text-heaven-muted">{status}</p>
+            </div>
+          </div>
+        </div>
+      </SectionWrapper>
+    )
+  }
 
   useEffect(() => {
     const localDraft = localStorage.getItem(STORAGE_KEY)
@@ -149,69 +168,129 @@ export default function PanelPage() {
   }
 
   async function uploadImage(type: ManagedItemType, index: number, file: File) {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('folder', type === 'catalog' ? 'catalog' : 'accessories')
+    setStatus('Solicitando URL firmada...')
+    try {
+      const filename = file.name
+      const folder = type === 'catalog' ? 'catalog' : 'accessories'
+      const sigRes = await fetch('/panel/api/media/sign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, folder }),
+      })
 
-    setStatus('Subiendo imagen...')
-    const response = await fetch('/panel/api/media/upload', {
-      method: 'POST',
-      body: formData,
-    })
+      if (sigRes.status === 401) {
+        setStatus('La sesión expiró. Debes volver a iniciar sesión.')
+        router.replace('/panel/login?next=/panel')
+        return
+      }
 
-    if (response.status === 401) {
-      setStatus('La sesión expiró. Debes volver a iniciar sesión.')
-      router.replace('/panel/login?next=/panel')
-      return
+      const sig = await sigRes.json().catch(() => null)
+      if (!sigRes.ok || !sig?.signedUrl) {
+        setStatus(sig?.error ?? 'No se pudo obtener la URL firmada.')
+        return
+      }
+
+      setStatus('Subiendo directamente al storage...')
+      const uploadRes = await fetch(sig.signedUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      })
+
+      if (!uploadRes.ok) {
+        setStatus('Error al subir el archivo al storage.')
+        return
+      }
+
+      setStatus('Solicitando procesamiento de variantes...')
+      const processRes = await fetch('/panel/api/media/process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: sig.path }),
+      })
+
+      const proc = await processRes.json().catch(() => null)
+      if (!processRes.ok || !proc?.urls) {
+        // Fallback to original public URL
+        const publicUrl = `/api/_internal/public-url?path=${encodeURIComponent(sig.path)}`
+        const item = (type === 'catalog' ? content.catalog : content.accessories)[index]
+        updateItem(type, index, { ...item, imagenUrl: publicUrl })
+        setStatus('Imagen subida, pero falló el procesamiento. Se usa original.')
+        return
+      }
+
+      const item = (type === 'catalog' ? content.catalog : content.accessories)[index]
+      updateItem(type, index, { ...item, imagenUrl: proc.urls.webp ?? proc.urls.original })
+      setStatus('Imagen cargada y procesada correctamente.')
+    } catch (err) {
+      setStatus('Error inesperado al subir la imagen.')
     }
-
-    const payload = await response.json().catch(() => null)
-    if (!response.ok || !payload?.url) {
-      setStatus(payload?.error ?? 'No se pudo subir la imagen.')
-      return
-    }
-
-    const item = (type === 'catalog' ? content.catalog : content.accessories)[index]
-    updateItem(type, index, { ...item, imagenUrl: payload.url })
-    setStatus('Imagen cargada correctamente.')
   }
 
   async function uploadBannerImage(index: number, file: File) {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('folder', 'banners')
+    setStatus('Solicitando URL firmada para banner...')
+    try {
+      const filename = file.name
+      const folder = 'banners'
+      const sigRes = await fetch('/panel/api/media/sign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, folder }),
+      })
 
-    setStatus('Subiendo banner...')
-    const response = await fetch('/panel/api/media/upload', {
-      method: 'POST',
-      body: formData,
-    })
-
-    if (response.status === 401) {
-      setStatus('La sesión expiró. Debes volver a iniciar sesión.')
-      router.replace('/panel/login?next=/panel')
-      return
-    }
-
-    const payload = await response.json().catch(() => null)
-    if (!response.ok || !payload?.url) {
-      setStatus(payload?.error ?? 'No se pudo subir el banner.')
-      return
-    }
-
-    setContent((current) => {
-      const nextBanners = [...current.site.bannerImages]
-      nextBanners[index] = payload.url
-      return {
-        ...current,
-        site: {
-          ...current.site,
-          bannerImages: nextBanners,
-        },
+      if (sigRes.status === 401) {
+        setStatus('La sesión expiró. Debes volver a iniciar sesión.')
+        router.replace('/panel/login?next=/panel')
+        return
       }
-    })
 
-    setStatus('Banner cargado correctamente.')
+      const sig = await sigRes.json().catch(() => null)
+      if (!sigRes.ok || !sig?.signedUrl) {
+        setStatus(sig?.error ?? 'No se pudo obtener la URL firmada para el banner.')
+        return
+      }
+
+      setStatus('Subiendo banner al storage...')
+      const uploadRes = await fetch(sig.signedUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      })
+
+      if (!uploadRes.ok) {
+        setStatus('Error al subir el banner al storage.')
+        return
+      }
+
+      setStatus('Procesando variantes del banner...')
+      const processRes = await fetch('/panel/api/media/process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: sig.path }),
+      })
+
+      const proc = await processRes.json().catch(() => null)
+      if (!processRes.ok || !proc?.urls) {
+        const publicUrl = `/api/_internal/public-url?path=${encodeURIComponent(sig.path)}`
+        setContent((current) => {
+          const nextBanners = [...current.site.bannerImages]
+          nextBanners[index] = publicUrl
+          return { ...current, site: { ...current.site, bannerImages: nextBanners } }
+        })
+        setStatus('Banner subido, pero falló el procesamiento. Se usa original.')
+        return
+      }
+
+      setContent((current) => {
+        const nextBanners = [...current.site.bannerImages]
+        nextBanners[index] = proc.urls.webp ?? proc.urls.original
+        return { ...current, site: { ...current.site, bannerImages: nextBanners } }
+      })
+
+      setStatus('Banner cargado y procesado correctamente.')
+    } catch (err) {
+      setStatus('Error inesperado al subir el banner.')
+    }
   }
 
   async function saveContent() {
@@ -220,7 +299,16 @@ export default function PanelPage() {
     setStatus('Guardando cambios...')
 
     try {
-      const payload = withFeaturedSlugs({ ...content, updatedAt: new Date().toISOString() })
+        const payload = withFeaturedSlugs({ ...content, updatedAt: new Date().toISOString() })
+
+        const localValidation = adminContentSchema.safeParse(payload)
+        if (!localValidation.success) {
+          const issues = localValidation.error.errors.map((err) => `${err.path.join('.')}: ${err.message}`)
+          setValidationErrors(issues)
+          setStatus('Errores de validación locales. Corrige antes de guardar.')
+          setSaving(false)
+          return
+        }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
 
       const response = await fetch('/panel/api/content', {

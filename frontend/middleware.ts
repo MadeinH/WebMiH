@@ -173,8 +173,17 @@ export function middleware(request: NextRequest) {
     response.headers.set('X-RateLimit-Remaining', String(remaining))
 
     // Cross-Origin policies (A01: prevenir leaks cross-origin)
-    response.headers.set('Cross-Origin-Opener-Policy', 'same-origin')
-    response.headers.set('Cross-Origin-Resource-Policy', 'same-origin')
+      response.headers.set('Cross-Origin-Opener-Policy', 'same-origin')
+      response.headers.set('Cross-Origin-Resource-Policy', 'same-origin')
+      // Security headers recomendados
+      response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
+      response.headers.set('X-Frame-Options', 'DENY')
+      response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+      response.headers.set('Permissions-Policy', 'geolocation=(), camera=()')
+      response.headers.set(
+        'Content-Security-Policy',
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'"
+      )
 
     return response
   }
@@ -185,6 +194,15 @@ export function middleware(request: NextRequest) {
   // Cross-Origin policies (A01: prevenir leaks cross-origin)
   response.headers.set('Cross-Origin-Opener-Policy', 'same-origin')
   response.headers.set('Cross-Origin-Resource-Policy', 'same-origin')
+  // Security headers recomendados
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('Permissions-Policy', 'geolocation=(), camera=()')
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'"
+  )
 
   return response
 }

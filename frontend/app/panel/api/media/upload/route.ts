@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getAdminSessionFromRequest, verifyOrigin } from '@/lib/security'
+import sharp from 'sharp'
 
 const DEFAULT_BUCKET = 'catalog-media'
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024
@@ -21,15 +22,39 @@ function getExtensionFromMime(mimeType: string): string {
   return 'bin'
 }
 
-async function optimizeMedia(file: File): Promise<{ body: Buffer; contentType: string; extension: string }> {
+async function optimizeMedia(file: File): Promise<{
+  body: Buffer
+  contentType: string
+  extension: string
+  webpBuffer?: Buffer
+  thumbBuffer?: Buffer
+}> {
   const mimeType = file.type || 'application/octet-stream'
   const bytes = Buffer.from(await file.arrayBuffer())
 
-  return {
+  const result: any = {
     body: bytes,
     contentType: mimeType,
     extension: getExtensionFromMime(mimeType),
   }
+
+  // Only optimize raster images (skip animated GIFs and videos)
+  if (mimeType.startsWith('image/') && mimeType !== 'image/gif') {
+    try {
+      const image = sharp(bytes)
+      // Normalizar orientación y limitar ancho máximo (evitar imágenes enormes)
+      const optimized = await image.rotate().resize({ width: 2000, withoutEnlargement: true }).webp({ quality: 80 }).toBuffer()
+      const thumb = await image.rotate().resize({ width: 400, height: 400, fit: 'cover' }).webp({ quality: 75 }).toBuffer()
+
+      result.webpBuffer = optimized
+      result.thumbBuffer = thumb
+    } catch (err) {
+      // Si falla la optimización, devolvemos el original sin bloquear el upload
+      console.warn('sharp optimization failed', err)
+    }
+  }
+
+  return result
 }
 
 export async function POST(request: Request) {
@@ -68,21 +93,48 @@ export async function POST(request: Request) {
 
   const supabase = createServerClient()
   const bucket = process.env.SUPABASE_CMS_BUCKET || DEFAULT_BUCKET
-  const { body, contentType, extension } = await optimizeMedia(file)
+  const { body, contentType, extension, webpBuffer, thumbBuffer } = await optimizeMedia(file)
   const folderRaw = String(formData.get('folder') ?? 'panel')
   const folder = folderRaw.replace(/[^a-zA-Z0-9/_-]/g, '').replace(/\.{2,}/g, '') || 'panel'
-  const path = `${folder}/${Date.now()}-${crypto.randomUUID()}.${extension}`
+  const now = Date.now()
+  const baseId = `${folder}/${now}-${crypto.randomUUID()}`
+  const originalPath = `${baseId}.${extension}`
 
-  const { error } = await supabase.storage.from(bucket).upload(path, body, {
-    cacheControl: '31536000',
-    upsert: false,
-    contentType,
-  })
+  const uploads: Array<{ path: string; body: Buffer | Uint8Array; contentType?: string }> = [
+    { path: originalPath, body, contentType },
+  ]
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  if (webpBuffer) {
+    uploads.push({ path: `${baseId}.webp`, body: webpBuffer, contentType: 'image/webp' })
+  }
+  if (thumbBuffer) {
+    uploads.push({ path: `${baseId}-thumb.webp`, body: thumbBuffer, contentType: 'image/webp' })
   }
 
-  const { data } = supabase.storage.from(bucket).getPublicUrl(path)
-  return NextResponse.json({ url: data.publicUrl, path })
+  for (const u of uploads) {
+    const { error } = await supabase.storage.from(bucket).upload(u.path, u.body as any, {
+      cacheControl: '31536000',
+      upsert: false,
+      contentType: u.contentType,
+    })
+
+    if (error) {
+      console.error('upload error', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+  }
+
+  const urls: Record<string, string> = {}
+  const originalPublic = supabase.storage.from(bucket).getPublicUrl(originalPath)
+  urls.original = originalPublic.data.publicUrl
+  if (webpBuffer) {
+    const p = supabase.storage.from(bucket).getPublicUrl(`${baseId}.webp`)
+    urls.webp = p.data.publicUrl
+  }
+  if (thumbBuffer) {
+    const t = supabase.storage.from(bucket).getPublicUrl(`${baseId}-thumb.webp`)
+    urls.thumb = t.data.publicUrl
+  }
+
+  return NextResponse.json({ urls, paths: uploads.map((u) => u.path) })
 }
