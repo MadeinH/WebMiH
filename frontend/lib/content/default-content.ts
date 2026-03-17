@@ -20,9 +20,9 @@ function createItem(item: Omit<ManagedItem, 'id'> & { id?: string }): ManagedIte
 export const defaultAdminContent: AdminContentSnapshot = {
   site: {
     heroDescription:
-      'Ropa y accesorios personalizados para marcas, eventos y estilo personal. Diseñamos, producimos y cotizamos según tu idea.',
+      'Crea tu estilo único. Ropa y accesorios personalizados de alta calidad, fabricados en Colombia para todo el mundo.',
     catalogoIntro:
-      'Todas nuestras prendas son personalizables. Los precios incluyen prenda y estampado base.',
+      'Todas nuestras prendas son personalizables con diferentes técnicas según tu presupuesto y cantidad.',
     accesoriosIntro:
       'Cuadros, pósters, gorras, termos y más. Personalizamos cada referencia según tu diseño.',
     outOfCatalogTitle: '¿Buscas algo diferente?',
@@ -35,7 +35,7 @@ export const defaultAdminContent: AdminContentSnapshot = {
       type: 'catalog',
       slug: 'camiseta',
       nombre: 'Camiseta',
-      descripcion: 'Camiseta clásica personalizable. Piel de durazno o algodón 100%.',
+      descripcion: 'Camiseta clásica de calidad premium. Disponible en piel de durazno o algodón 100%.',
       subcategoria: 'camisetas',
       material: 'Piel de durazno / Algodón 100%',
       horma: 'hombre',
@@ -119,7 +119,7 @@ export const defaultAdminContent: AdminContentSnapshot = {
       type: 'catalog',
       slug: 'hoodie-un-color',
       nombre: 'Hoodie (Un Color)',
-      descripcion: 'Hoodie en algodón perchado de un solo color.',
+      descripcion: 'Hoodie de calidad premium en algodón perchado.',
       subcategoria: 'hoodies',
       material: 'Algodón perchado',
       horma: 'unisex',

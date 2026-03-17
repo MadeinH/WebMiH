@@ -15,56 +15,47 @@ const tecnicas = [
   {
     nombre: 'DTF (Direct to Film)',
     descripcion:
-      'Transferencia directa a película. Permite estampados a todo color con excelente resolución y durabilidad. Funciona en prácticamente cualquier tipo de tela y color de prenda.',
-    ideal: 'Diseños multicolor complejos, fotos, gradientes',
+      'Impresión de película directa. Permite estampados a todo color con alta resolución y durabilidad. Ideal para diseños complejos, fotografías y gradientes. Compatible con la mayoría de telas y práctico para pedidos pequeños.',
+    ideal: 'Diseños multicolor, fotos, gradientes',
     telas: 'Algodón, poliéster, mezclas',
-    icono: '🎨',
+    icono: null,
     variant: 'lilac' as const,
   },
   {
     nombre: 'Sublimación',
     descripcion:
-      'Los colores se funden directamente con la fibra del tejido mediante calor. El resultado es un acabado suave al tacto que no se agrieta ni se pela.',
-    ideal: 'Diseños all-over, colores vibrantes',
-    telas: 'Poliéster y telas claras',
-    icono: '🌈',
+      'Los colores se funden directamente en la fibra del tejido mediante calor. Genera un acabado suave que no se agrieta. Excelente para diseños vibrantes en prendas de colores claros.',
+    ideal: 'Diseños all-over, colores vibrantes y saturados',
+    telas: 'Poliéster y telas sintéticas',
+    icono: null,
     variant: 'mint' as const,
   },
   {
     nombre: 'Serigrafía',
     descripcion:
-      'Técnica clásica de impresión por plantilla. Ideal para grandes cantidades con colores sólidos. Acabado profesional y muy duradero.',
-    ideal: 'Logos, textos, diseños de pocos colores',
-    telas: 'Algodón, mezclas',
-    icono: '🖨️',
+      'Impresión por pantalla mediante plantillas. Ideal para grandes volúmenes con colores sólidos. Acabado profesional, muy duradero y económico en cantidades altas.',
+    ideal: 'Logos, textos, diseños con pocos colores, volúmenes altos',
+    telas: 'Algodón, mezclas, fibras naturales',
+    icono: null,
     variant: 'rose' as const,
   },
   {
     nombre: 'Vinil Textil',
     descripcion:
-      'Material cortado con plotter y transferido con calor. Genera textura y relieve en la prenda. Disponible en acabados mate, brillante y especiales.',
-    ideal: 'Nombres, números, logos monocromáticos',
+      'Material cortado con plotter y transferido con calor. Crea efecto de textura. Disponible en acabados mate, brillante y especiales. Ideal para nombres, números y logos monocromáticos.',
+    ideal: 'Nombres, números, logos de color único',
     telas: 'Algodón, poliéster, mezclas',
-    icono: '✂️',
+    icono: null,
     variant: 'lilac' as const,
   },
   {
     nombre: 'Bordado',
     descripcion:
-      'Acabado premium bordado con hilo industrial. Da un aspecto elegante y profesional. Perfecto para logos corporativos o diseños pequeños de alta calidad.',
-    ideal: 'Logos, emblemas, iniciales',
-    telas: 'Cualquier tela con cuerpo suficiente',
-    icono: '🧵',
+      'Acabado premium con hilo industrial. Aspecto elegante y profesional. Otorga relieve y textura tangible. Ideal para logos corporativos y diseños pequeños de alta calidad.',
+    ideal: 'Logos corporativos, emblemas, iniciales',
+    telas: 'Telas con cuerpo suficiente (algodón, telas estructuradas)',
+    icono: null,
     variant: 'mint' as const,
-  },
-  {
-    nombre: 'Estampado Reflectivo',
-    descripcion:
-      'Material que refleja la luz directa en la oscuridad. Efecto visual impactante para prendas deportivas o streetwear. Cargo adicional de +$5.000 por unidad.',
-    ideal: 'Streetwear, ropa deportiva nocturna',
-    telas: 'Cualquier tela compatible con DTF',
-    icono: '✨',
-    variant: 'rose' as const,
   },
 ]
 
@@ -91,7 +82,6 @@ export default function PersonalizacionPage() {
               key={t.nombre}
               className="rounded-2xl border border-heaven-divider bg-heaven-bg-card p-8 transition-all duration-300 hover:border-heaven-lilac/30 hover:shadow-heaven-glow"
             >
-              <div className="mb-4 text-4xl">{t.icono}</div>
               <Badge variant={t.variant} className="mb-3">
                 {t.nombre}
               </Badge>

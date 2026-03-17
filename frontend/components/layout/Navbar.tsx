@@ -83,7 +83,7 @@ export default function Navbar() {
 
       {/* Menú mobile */}
       {isOpen && (
-        <div className="border-t border-heaven-divider bg-heaven-bg-dark md:hidden">
+        <div className="relative z-50 border-t border-heaven-divider bg-heaven-bg-dark md:hidden">
           <ul className="flex flex-col gap-1 px-6 py-4">
             {navItems.map((item) => (
               <li key={item.href}>

@@ -41,11 +41,6 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
       {/* Filtro de categorías */}
       <CatalogoFilter activeCat={activeCat} />
 
-      {/* Nota sobre estampado reflectivo */}
-      <div className="mb-8 rounded-xl border border-heaven-cream/30 bg-heaven-cream/10 p-4 text-center text-sm text-heaven-cream">
-        ✨ Estampado reflectivo disponible en todas las prendas por +$5.000 adicional
-      </div>
-
       {/* Grid de productos */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filtered.map((p) => (

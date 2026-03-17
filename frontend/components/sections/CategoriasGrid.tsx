@@ -10,7 +10,7 @@ const categorias = [
     href: '/catalogo?cat=camisetas',
     badge: 'Desde $18.500',
     badgeVariant: 'lilac' as const,
-    icono: '👕',
+    icono: null,
   },
   {
     nombre: 'Hoodies & Suéteres',
@@ -18,15 +18,15 @@ const categorias = [
     href: '/catalogo?cat=hoodies',
     badge: 'Desde $31.500',
     badgeVariant: 'mint' as const,
-    icono: '🧥',
+    icono: null,
   },
   {
     nombre: 'Rompevientos & Chaquetas',
-    descripcion: 'Nylon premium, reflectivo, algodón perchado',
+    descripcion: 'Nylon premium, algodón perchado',
     href: '/catalogo?cat=chaquetas',
     badge: 'Desde $33.500',
     badgeVariant: 'rose' as const,
-    icono: '🧤',
+    icono: null,
   },
   {
     nombre: 'Ropa Deportiva',
@@ -34,7 +34,7 @@ const categorias = [
     href: '/catalogo?cat=deportiva',
     badge: 'Desde $35.500',
     badgeVariant: 'lilac' as const,
-    icono: '🏃',
+    icono: null,
   },
   {
     nombre: 'Gorras & Accesorios',
@@ -42,7 +42,7 @@ const categorias = [
     href: '/accesorios',
     badge: 'Ver accesorios',
     badgeVariant: 'mint' as const,
-    icono: '🧢',
+    icono: null,
   },
   {
     nombre: 'Cuadros & Decoración',
@@ -50,7 +50,7 @@ const categorias = [
     href: '/accesorios',
     badge: 'Ver accesorios',
     badgeVariant: 'rose' as const,
-    icono: '🖼️',
+    icono: null,
   },
 ]
 
@@ -75,7 +75,6 @@ export default function CategoriasGrid() {
             href={cat.href}
             className="group rounded-2xl border border-heaven-divider bg-heaven-bg-card p-6 transition-all duration-300 hover:border-heaven-lilac/30 hover:shadow-heaven-glow"
           >
-            <div className="mb-4 text-4xl">{cat.icono}</div>
             <h3 className="font-display text-xl uppercase tracking-wide text-heaven-text transition-colors group-hover:text-heaven-lilac">
               {cat.nombre}
             </h3>

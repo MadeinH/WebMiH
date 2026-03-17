@@ -30,6 +30,7 @@ export default async function ProductosDestacados() {
             soloWhatsApp={p.soloCotizar}
             slug={p.slug}
             imagenUrl={p.imagenUrl ?? undefined}
+            type={p.type}
           />
         ))}
       </div>

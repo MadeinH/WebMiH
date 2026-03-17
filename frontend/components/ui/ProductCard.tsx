@@ -12,6 +12,7 @@ interface ProductCardProps {
   soloWhatsApp?: boolean
   imagenUrl?: string
   slug: string
+  type?: 'catalog' | 'accessory' // Nuevo: para determinar la ruta
 }
 
 /** Tarjeta de producto para el catálogo */
@@ -23,11 +24,14 @@ export default function ProductCard({
   soloWhatsApp = false,
   imagenUrl,
   slug,
+  type = 'catalog',
 }: ProductCardProps) {
+  const detailUrl = type === 'accessory' ? `/accesorios/${slug}` : `/catalogo/${slug}`
+
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl bg-heaven-bg-card shadow-heaven-card transition-shadow duration-300 hover:shadow-heaven-glow">
       {/* Imagen del producto */}
-      <Link href={`/catalogo/${slug}`} className="relative aspect-square overflow-hidden">
+      <Link href={detailUrl} className="relative aspect-square overflow-hidden">
         {imagenUrl ? (
           <Image
             src={imagenUrl}
@@ -45,7 +49,7 @@ export default function ProductCard({
 
       {/* Información */}
       <div className="flex flex-1 flex-col gap-3 p-5">
-        <Link href={`/catalogo/${slug}`}>
+        <Link href={detailUrl}>
           <h3 className="font-display text-lg uppercase tracking-wide text-heaven-text transition-colors hover:text-heaven-lilac">
             {nombre}
           </h3>
@@ -77,7 +81,7 @@ export default function ProductCard({
                 </span>
               )}
               <Link
-                href={`/catalogo/${slug}`}
+                href={detailUrl}
                 className="text-sm font-semibold text-heaven-mint transition-colors hover:text-heaven-lilac"
               >
                 Ver detalles →

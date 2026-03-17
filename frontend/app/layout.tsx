@@ -4,6 +4,7 @@ import Script from 'next/script'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import WhatsAppFAB from '@/components/ui/WhatsAppFAB'
+import FloatingCart from '@/components/ui/FloatingCart'
 import { CartProvider } from '@/lib/cart-context'
 import { normalizeSiteUrl } from '@/lib/utils'
 import './globals.css'
@@ -121,24 +122,27 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen font-body">
         <CartProvider>
-        {/* Skip navigation para accesibilidad */}
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-heaven-lilac focus:px-4 focus:py-2 focus:text-heaven-bg-dark focus:shadow-heaven-cta"
-        >
-          Saltar al contenido principal
-        </a>
+            {/* Skip navigation para accesibilidad */}
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-heaven-lilac focus:px-4 focus:py-2 focus:text-heaven-bg-dark focus:shadow-heaven-cta"
+            >
+              Saltar al contenido principal
+            </a>
 
-        <Navbar />
+            <Navbar />
 
-        <main id="main-content">
-          {children}
-        </main>
+            <main id="main-content">
+              {children}
+            </main>
 
-        <Footer />
+            <Footer />
 
-        {/* FAB de WhatsApp — siempre visible */}
-        <WhatsAppFAB />
+            {/* FAB de WhatsApp — siempre visible */}
+            <WhatsAppFAB />
+            
+            {/* Carrito flotante */}
+            <FloatingCart />
         </CartProvider>
       </body>
     </html>

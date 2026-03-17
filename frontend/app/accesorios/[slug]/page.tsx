@@ -7,34 +7,30 @@ import CTAButton from '@/components/ui/CTAButton'
 import {
   getAccessoryItemBySlug,
   getAccessoryItems,
-  getCatalogItemBySlug,
-  getCatalogItems,
 } from '@/lib/content/repository'
-import { buildProductoUrl, buildWhatsAppUrl } from '@/lib/whatsapp'
+import { buildProductoUrl } from '@/lib/whatsapp'
 
-interface ProductoPageProps {
+interface AccesorioPageProps {
   params: { slug: string }
 }
 
-/** Pre-genera páginas de producto activas en build time */
+/** Pre-genera páginas de accesorios activos en build time */
 export async function generateStaticParams() {
-  const [catalog, accessories] = await Promise.all([getCatalogItems(), getAccessoryItems()])
-  return [...catalog, ...accessories].map((item) => ({ slug: item.slug }))
+  const accessories = await getAccessoryItems()
+  return accessories.map((item) => ({ slug: item.slug }))
 }
 
 /** Metadata dinámica para SEO */
-export async function generateMetadata({ params }: ProductoPageProps): Promise<Metadata> {
-  const producto =
-    (await getCatalogItemBySlug(params.slug)) ??
-    (await getAccessoryItemBySlug(params.slug))
+export async function generateMetadata({ params }: AccesorioPageProps): Promise<Metadata> {
+  const accesorio = await getAccessoryItemBySlug(params.slug)
 
-  if (!producto) {
-    return { title: 'Producto no encontrado' }
+  if (!accesorio) {
+    return { title: 'Accesorio no encontrado' }
   }
 
   return {
-    title: producto.nombre,
-    description: producto.descripcion || `Detalles de ${producto.nombre}`,
+    title: accesorio.nombre,
+    description: accesorio.descripcion || `Detalles de ${accesorio.nombre}`,
   }
 }
 
@@ -50,29 +46,27 @@ function hasPrices(item: {
   return Object.values(item.priceMatrix).some((value) => typeof value === 'number')
 }
 
-/** Página de producto individual */
-export default async function ProductoPage({ params }: ProductoPageProps) {
-  const producto =
-    (await getCatalogItemBySlug(params.slug)) ??
-    (await getAccessoryItemBySlug(params.slug))
+/** Página de accesorio individual */
+export default async function AccesorioPage({ params }: AccesorioPageProps) {
+  const accesorio = await getAccessoryItemBySlug(params.slug)
 
-  if (!producto) {
+  if (!accesorio) {
     return (
       <SectionWrapper>
         <div className="py-24 text-center">
-          <h1 className="font-display text-4xl uppercase text-heaven-text">Producto no encontrado</h1>
+          <h1 className="font-display text-4xl uppercase text-heaven-text">Accesorio no encontrado</h1>
           <p className="mt-4 text-heaven-muted">
-            El producto que buscas no existe o ya no está disponible.
+            El accesorio que buscas no existe o ya no está disponible.
           </p>
-          <CTAButton variant="primary" href="/catalogo" className="mt-8">
-            Volver al catálogo
+          <CTAButton variant="primary" href="/accesorios" className="mt-8">
+            Volver a accesorios
           </CTAButton>
         </div>
       </SectionWrapper>
     )
   }
 
-  const showPriceTable = !producto.soloCotizar && hasPrices(producto)
+  const showPriceTable = !accesorio.soloCotizar && hasPrices(accesorio)
 
   return (
     <SectionWrapper>
@@ -83,10 +77,10 @@ export default async function ProductoPage({ params }: ProductoPageProps) {
           </li>
           <li aria-hidden="true">/</li>
           <li>
-            <Link href="/catalogo" className="transition-colors hover:text-heaven-lilac">Catálogo</Link>
+            <Link href="/accesorios" className="transition-colors hover:text-heaven-lilac">Accesorios</Link>
           </li>
           <li aria-hidden="true">/</li>
-          <li className="text-heaven-text">{producto.nombre}</li>
+          <li className="text-heaven-text">{accesorio.nombre}</li>
         </ol>
       </nav>
 
@@ -97,31 +91,31 @@ export default async function ProductoPage({ params }: ProductoPageProps) {
 
         <div className="space-y-6">
           <div>
-            <Badge variant="lilac">{producto.horma || 'Personalizable'}</Badge>
+            <Badge variant="mint">{accesorio.horma || 'Accesorio'}</Badge>
             <h1 className="mt-4 font-display text-4xl uppercase tracking-wide text-heaven-text md:text-5xl">
-              {producto.nombre}
+              {accesorio.nombre}
             </h1>
           </div>
 
-          <p className="leading-relaxed text-heaven-muted">{producto.descripcion}</p>
+          <p className="leading-relaxed text-heaven-muted">{accesorio.descripcion}</p>
 
           <div className="space-y-2">
             <p className="text-sm text-heaven-muted">
               <span className="font-semibold text-heaven-text">Material:</span>{' '}
-              {producto.material || 'Personalizable'}
+              {accesorio.material || 'Personalizable'}
             </p>
           </div>
 
           {showPriceTable ? (
-            <ProductQuotationForm producto={producto} />
+            <ProductQuotationForm producto={accesorio} />
           ) : (
             <div className="space-y-4">
               <p className="text-sm text-heaven-muted">
-                Este producto requiere cotización personalizada.
+                Este accesorio requiere cotización personalizada.
               </p>
               <CTAButton
                 variant="whatsapp"
-                href={buildProductoUrl(producto.nombre)}
+                href={buildProductoUrl(accesorio.nombre)}
                 external
                 className="w-full"
               >

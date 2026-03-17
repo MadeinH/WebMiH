@@ -44,6 +44,7 @@ export default async function AccesoriosPage() {
               soloWhatsApp={a.soloCotizar}
               slug={a.slug}
               imagenUrl={a.imagenUrl ?? undefined}
+              type="accessory"
             />
           ))}
         </div>
@@ -64,6 +65,7 @@ export default async function AccesoriosPage() {
               soloWhatsApp
               slug={a.slug}
               imagenUrl={a.imagenUrl ?? undefined}
+              type="accessory"
             />
           ))}
         </div>
