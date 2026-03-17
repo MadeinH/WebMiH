@@ -104,14 +104,6 @@ export async function POST(request: Request) {
   const urls: Record<string, string> = {}
   const originalPublic = supabase.storage.from(bucket).getPublicUrl(originalPath)
   urls.original = originalPublic.data.publicUrl
-  if (webpBuffer) {
-    const p = supabase.storage.from(bucket).getPublicUrl(`${baseId}.webp`)
-    urls.webp = p.data.publicUrl
-  }
-  if (thumbBuffer) {
-    const t = supabase.storage.from(bucket).getPublicUrl(`${baseId}-thumb.webp`)
-    urls.thumb = t.data.publicUrl
-  }
 
   return NextResponse.json({ urls, paths: uploads.map((u) => u.path) })
 }
