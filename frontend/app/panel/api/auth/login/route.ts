@@ -24,8 +24,12 @@ function getRequestIP(request: Request): string {
 export async function POST(request: Request) {
   const csrfError = validateCSRF(request)
   if (csrfError) {
+    const errorMessage = process.env.NODE_ENV !== 'production'
+      ? `Solicitud no autorizada (${csrfError})`
+      : 'Solicitud no autorizada'
+
     return NextResponse.json(
-      { error: 'Solicitud no autorizada' },
+      { error: errorMessage },
       { status: 403, headers: { 'Cache-Control': 'no-store' } },
     )
   }

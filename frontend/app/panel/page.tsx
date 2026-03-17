@@ -73,6 +73,8 @@ export default function PanelPage() {
   const [loggingOut, setLoggingOut] = useState(false)
   const [status, setStatus] = useState('Cargando contenido del panel...')
   const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const [saveAttemptCount, setSaveAttemptCount] = useState(0)
+  const [lastSaveAttemptAt, setLastSaveAttemptAt] = useState<string | null>(null)
   useEffect(() => {
     const localDraft = localStorage.getItem(STORAGE_KEY)
     if (localDraft) {
@@ -333,11 +335,20 @@ export default function PanelPage() {
       setContent(ensureSnapshot(data))
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
       setStatus('Cambios guardados correctamente.')
-    } catch {
-      setStatus('Fallo de red al guardar. El borrador local se conservó.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      setStatus(`Fallo de red al guardar. ${message}`)
     } finally {
       setSaving(false)
     }
+  }
+
+  function handleSaveClick() {
+    const now = new Date().toLocaleTimeString('es-CO', { hour12: false })
+    setSaveAttemptCount((current) => current + 1)
+    setLastSaveAttemptAt(now)
+    setStatus(`Intentando guardar cambios (${now})...`)
+    void saveContent()
   }
 
   async function logout() {
@@ -380,7 +391,7 @@ export default function PanelPage() {
             </button>
             <button
               type="button"
-              onClick={saveContent}
+              onClick={handleSaveClick}
               disabled={loading || saving}
               className="rounded-lg bg-heaven-lilac px-4 py-3 text-sm font-semibold text-heaven-bg-dark disabled:opacity-60"
             >
@@ -407,6 +418,13 @@ export default function PanelPage() {
             </ul>
           </div>
         )}
+
+        <div className="rounded-2xl border border-heaven-divider bg-heaven-bg-card/60 p-3 text-xs text-heaven-muted">
+          <p>
+            Intentos de guardado: {saveAttemptCount}
+            {lastSaveAttemptAt ? ` · Último intento: ${lastSaveAttemptAt}` : ''}
+          </p>
+        </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <section className="rounded-3xl border border-heaven-divider bg-heaven-bg-card p-6 shadow-heaven-card lg:col-span-2">
@@ -500,7 +518,7 @@ export default function PanelPage() {
         <div className="fixed bottom-6 right-6 z-40">
           <button
             type="button"
-            onClick={saveContent}
+            onClick={handleSaveClick}
             disabled={loading || saving}
             className="rounded-full bg-heaven-lilac px-6 py-3 text-sm font-semibold text-heaven-bg-dark shadow-heaven-cta disabled:opacity-60"
           >

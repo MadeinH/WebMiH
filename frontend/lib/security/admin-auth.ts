@@ -209,7 +209,7 @@ export function getAdminSessionCookieOptions() {
     httpOnly: true,
     sameSite: 'lax' as const,
     secure: process.env.NODE_ENV === 'production',
-    path: '/panel',
+    path: '/',
     maxAge: Math.floor(getSessionTtlMs() / 1000),
   }
 }
@@ -219,7 +219,7 @@ export function getAdminSessionCookieDeletionOptions() {
     httpOnly: true,
     sameSite: 'lax' as const,
     secure: process.env.NODE_ENV === 'production',
-    path: '/panel',
+    path: '/',
     maxAge: 0,
   }
 }

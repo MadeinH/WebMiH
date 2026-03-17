@@ -16,7 +16,11 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   const csrfError = validateCSRF(request)
   if (csrfError) {
-    return NextResponse.json({ error: 'Solicitud no autorizada' }, { status: 403, headers: { 'Cache-Control': 'no-store' } })
+    const errorMessage = process.env.NODE_ENV !== 'production'
+      ? `Solicitud no autorizada (${csrfError})`
+      : 'Solicitud no autorizada'
+
+    return NextResponse.json({ error: errorMessage }, { status: 403, headers: { 'Cache-Control': 'no-store' } })
   }
 
   const session = await getAdminSessionFromRequest(request)
