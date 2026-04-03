@@ -24,6 +24,8 @@ export default function CotizacionPage() {
   const [comentarios, setComentarios] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [igCopied, setIgCopied] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitMessage, setSubmitMessage] = useState('')
 
   /** Validación del formulario con Zod */
   function validate(): boolean {
@@ -51,7 +53,7 @@ export default function CotizacionPage() {
       ? items
       : [
           {
-            productoId: 'general',
+            productoId: '00000000-0000-0000-0000-000000000000',
             nombre: 'Consulta general',
             variantes: 'Por definir',
             cantidad: 1,
@@ -60,18 +62,63 @@ export default function CotizacionPage() {
         ]
   }
 
+  async function submitCotizacion(): Promise<boolean> {
+    const payload = {
+      nombre,
+      email,
+      whatsapp,
+      comentarios: comentarios || undefined,
+      items: getItemsParaMensaje(),
+    }
+
+    const response = await fetch('/api/cotizacion', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      const data = (await response.json().catch(() => null)) as { error?: string } | null
+      setSubmitMessage(data?.error ?? 'No se pudo enviar la cotización. Intenta nuevamente.')
+      return false
+    }
+
+    setSubmitMessage('Cotización registrada. Te redirigimos a tu canal de contacto.')
+    return true
+  }
+
   /** Enviar cotización vía WhatsApp */
   function handleWhatsApp(e: React.FormEvent) {
     e.preventDefault()
     if (!validate()) return
 
-    const url = buildCotizacionUrl(getItemsParaMensaje())
-    window.open(url, '_blank', 'noopener,noreferrer')
+    setSubmitting(true)
+    setSubmitMessage('')
+
+    void (async () => {
+      const ok = await submitCotizacion()
+      if (ok) {
+        const url = buildCotizacionUrl(getItemsParaMensaje())
+        window.open(url, '_blank', 'noopener,noreferrer')
+      }
+      setSubmitting(false)
+    })()
   }
 
   /** Enviar cotización vía Instagram DM */
   async function handleInstagram() {
     if (!validate()) return
+
+    setSubmitting(true)
+    setSubmitMessage('')
+
+    const saved = await submitCotizacion()
+    if (!saved) {
+      setSubmitting(false)
+      return
+    }
 
     // Instagram DM no soporta texto pre-rellenado en la URL,
     // así que copiamos el mensaje al portapapeles del usuario
@@ -85,6 +132,7 @@ export default function CotizacionPage() {
 
     // Abrir Instagram DM (el usuario pega el mensaje)
     window.open(buildInstagramDMUrl(), '_blank', 'noopener,noreferrer')
+    setSubmitting(false)
   }
 
   return (
@@ -241,20 +289,25 @@ export default function CotizacionPage() {
             </p>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <CTAButton variant="whatsapp" type="submit" className="flex-1">
-                Enviar por WhatsApp
+              <CTAButton variant="whatsapp" type="submit" className="flex-1" disabled={submitting}>
+                {submitting ? 'Enviando...' : 'Enviar por WhatsApp'}
               </CTAButton>
 
               <CTAButton
                 variant="instagram"
                 type="button"
                 onClick={handleInstagram}
+                disabled={submitting}
                 className="flex-1"
               >
                 {igCopied ? '¡Mensaje copiado! Pégalo en el DM' : 'Enviar por Instagram'}
               </CTAButton>
             </div>
           </div>
+
+          {submitMessage && (
+            <p className="text-center text-sm text-heaven-muted">{submitMessage}</p>
+          )}
 
           {/* Nota informativa */}
           <div className="space-y-1 text-center text-xs text-heaven-muted">

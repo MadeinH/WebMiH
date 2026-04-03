@@ -100,6 +100,14 @@ export async function POST(request: Request) {
 
     // ── A07: Verificar reCAPTCHA v3 ─────────────────
     const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY
+    if (process.env.NODE_ENV === 'production' && !recaptchaSecret) {
+      logSecurityEvent({ ...ctx, type: 'API_ERROR', message: 'RECAPTCHA_SECRET_KEY no configurado en producción' })
+      return NextResponse.json(
+        { error: 'Servicio temporalmente no disponible.' },
+        { status: 503 }
+      )
+    }
+
     if (recaptchaSecret) {
       try {
         const recaptchaResponse = typeof recaptchaToken === 'string' ? recaptchaToken : ''
@@ -140,8 +148,6 @@ export async function POST(request: Request) {
         }
       } catch (recaptchaError) {
         // A10: No bloquear si reCAPTCHA está caído, pero loguear
-        // eslint-disable-next-line no-console
-        console.error('reCAPTCHA verification failed:', recaptchaError)
         logSecurityEvent({ ...ctx, type: 'API_ERROR', message: 'reCAPTCHA service unavailable' })
       }
     }

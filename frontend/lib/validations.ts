@@ -132,7 +132,69 @@ export const solicitudCotizacionSchema = cotizacionSchema.extend({
   recaptchaToken: z.string().min(1, 'Token de reCAPTCHA requerido').max(2048).optional(),
 })
 
+export const checkoutItemSchema = z.object({
+  productoId: z.string().uuid('ID de producto inválido'),
+  nombre: z
+    .string()
+    .min(2, 'Nombre requerido')
+    .max(200, 'Nombre demasiado largo')
+    .regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
+  variantes: z
+    .string()
+    .max(200, 'Variante demasiado larga')
+    .regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
+  cantidad: z.number().int('Debe ser entero').min(1, 'Mínimo 1').max(999, 'Máximo 999'),
+  precioUnitario: z.number().int('Precio inválido').min(1, 'Precio inválido'),
+  comentario: z
+    .string()
+    .max(200, 'Máximo 200 caracteres')
+    .regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos')
+    .optional(),
+})
+
+export const checkoutSchema = z.object({
+  nombre: z
+    .string()
+    .min(2, 'Mínimo 2 caracteres')
+    .max(100, 'Máximo 100 caracteres')
+    .regex(SAFE_TEXT_REGEX, 'Caracteres no permitidos'),
+  email: z
+    .string()
+    .email('Email inválido')
+    .max(254, 'Email demasiado largo')
+    .transform((v) => v.toLowerCase().trim()),
+  whatsapp: z
+    .string()
+    .regex(/^(\+?57)?3\d{9}$/, 'Número colombiano inválido')
+    .max(15, 'Número demasiado largo')
+    .optional(),
+  items: z.array(checkoutItemSchema).min(1, 'Agrega al menos un producto').max(100, 'Máximo 100 ítems'),
+})
+
+export const wompiWebhookSchema = z.object({
+  event: z.string(),
+  data: z
+    .object({
+      transaction: z.object({
+        id: z.string(),
+        reference: z.string(),
+        status: z.string(),
+      }),
+    })
+    .passthrough(),
+  signature: z
+    .object({
+      properties: z.array(z.string()).optional(),
+      checksum: z.string(),
+    })
+    .optional(),
+  timestamp: z.number().optional(),
+})
+
 export type CotizacionInput = z.infer<typeof cotizacionSchema>
 export type ItemCotizacionInput = z.infer<typeof itemCotizacionSchema>
 export type SolicitudCotizacionInput = z.infer<typeof solicitudCotizacionSchema>
 export type AdminContentInput = z.infer<typeof adminContentSchema>
+export type CheckoutInput = z.infer<typeof checkoutSchema>
+export type CheckoutItemInput = z.infer<typeof checkoutItemSchema>
+export type WompiWebhookInput = z.infer<typeof wompiWebhookSchema>

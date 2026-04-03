@@ -94,3 +94,10 @@ export const cotizacionLimiter = createRateLimiter({
   windowMs: 60_000, // 1 minuto
   maxRequests: 5,   // 5 cotizaciones por minuto por IP
 })
+
+/** Rate limiter para crear sesiones de pago */
+export const checkoutCreateLimiter = createRateLimiter({
+  name: 'checkout-create',
+  windowMs: 60_000, // 1 minuto
+  maxRequests: 5,   // 5 intentos de checkout por minuto por IP
+})

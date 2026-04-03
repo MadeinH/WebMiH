@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getAdminSessionFromRequest, verifyOrigin } from '@/lib/security'
 
 const DEFAULT_BUCKET = 'catalog-media'
+const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4'])
 
 // Simple in-memory rate limiter (per IP) — safe for single-instance dev/testing.
 const rateMap = new Map<string, { count: number; resetAt: number }>()
@@ -47,7 +48,15 @@ export async function POST(request: Request) {
   const filenameRaw = String(body.filename ?? '')
   const folderRaw = String(body.folder ?? 'panel')
   const folder = folderRaw.replace(/[^a-zA-Z0-9/_-]/g, '').replace(/\.\.{2,}/g, '') || 'panel'
-  const ext = (filenameRaw.split('.').pop() || 'bin').replace(/[^a-zA-Z0-9]/g, '')
+  const ext = (filenameRaw.split('.').pop() || 'bin').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    return NextResponse.json({ error: 'Tipo de archivo no permitido' }, { status: 415 })
+  }
+
+  if (!['panel', 'catalog', 'accessories'].some((prefix) => folder.startsWith(prefix))) {
+    return NextResponse.json({ error: 'Carpeta inválida' }, { status: 400 })
+  }
+
   const path = `${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`
 
   try {
@@ -56,7 +65,7 @@ export async function POST(request: Request) {
     const { data, error } = await supabase.storage.from(bucket).createSignedUploadUrl(path)
     if (error) {
       console.error('[sign] createSignedUploadUrl error', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: 'No se pudo generar URL de carga' }, { status: 500 })
     }
 
     // eslint-disable-next-line no-console
@@ -64,6 +73,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ signedUrl: data.signedUrl, token: data.token, path: data.path })
   } catch (err: any) {
     console.error('[sign] unexpected error', err)
-    return NextResponse.json({ error: String(err) }, { status: 500 })
+    return NextResponse.json({ error: 'Error interno en firmado de archivo' }, { status: 500 })
   }
 }

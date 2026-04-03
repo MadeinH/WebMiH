@@ -97,7 +97,7 @@ export async function POST(request: Request) {
     if (error) {
       // eslint-disable-next-line no-console
       console.error('upload error', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: 'No se pudo subir el archivo' }, { status: 500 })
     }
   }
 

@@ -8,28 +8,28 @@ const isDev = process.env.NODE_ENV !== 'production'
 const ContentSecurityPolicy = isDev
   ? `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com;
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://checkout.wompi.co;
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https:;
   font-src 'self' data:;
-  connect-src 'self' ws: wss: http: https: https://*.supabase.co https://www.google.com;
-  frame-src https://www.google.com;
+  connect-src 'self' ws: wss: http: https: https://*.supabase.co https://www.google.com https://api.wompi.co https://checkout.wompi.co;
+  frame-src https://www.google.com https://checkout.wompi.co;
   object-src 'none';
   base-uri 'self';
-  form-action 'self';
+  form-action 'self' https://checkout.wompi.co;
   frame-ancestors 'none';
 `
   : `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com;
+  script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://checkout.wompi.co;
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https:;
   font-src 'self';
-  connect-src 'self' https://*.supabase.co https://www.google.com;
-  frame-src https://www.google.com;
+  connect-src 'self' https://*.supabase.co https://www.google.com https://api.wompi.co https://checkout.wompi.co;
+  frame-src https://www.google.com https://checkout.wompi.co;
   object-src 'none';
   base-uri 'self';
-  form-action 'self';
+  form-action 'self' https://checkout.wompi.co;
   frame-ancestors 'none';
   upgrade-insecure-requests;
 `

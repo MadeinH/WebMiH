@@ -10,6 +10,7 @@ interface CTAButtonProps {
   external?: boolean
   className?: string
   type?: 'button' | 'submit'
+  disabled?: boolean
 }
 
 const baseClasses =
@@ -67,8 +68,10 @@ export default function CTAButton({
   external = false,
   className = '',
   type = 'button',
+  disabled = false,
 }: CTAButtonProps) {
-  const classes = `${baseClasses} ${variantClasses[variant]} ${className}`
+  const disabledClasses = disabled ? 'cursor-not-allowed opacity-60' : ''
+  const classes = `${baseClasses} ${variantClasses[variant]} ${disabledClasses} ${className}`
 
   // Contenido interno con ícono de WhatsApp si aplica
   const content = (
@@ -82,6 +85,10 @@ export default function CTAButton({
   // Si tiene href, renderiza como enlace
   if (href) {
     if (external) {
+      if (disabled) {
+        return <span className={classes}>{content}</span>
+      }
+
       return (
         <a
           href={href}
@@ -93,6 +100,11 @@ export default function CTAButton({
         </a>
       )
     }
+
+    if (disabled) {
+      return <span className={classes}>{content}</span>
+    }
+
     return (
       <Link href={href} className={classes}>
         {content}
@@ -102,7 +114,7 @@ export default function CTAButton({
 
   // Si no tiene href, renderiza como botón
   return (
-    <button type={type} onClick={onClick} className={classes}>
+    <button type={type} onClick={onClick} className={classes} disabled={disabled}>
       {content}
     </button>
   )

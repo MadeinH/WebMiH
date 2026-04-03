@@ -20,7 +20,7 @@ interface CartContextValue {
   totalItems: number
 }
 
-const STORAGE_KEY = 'mih-cart'
+const STORAGE_KEY = 'mih_carrito_v2'
 const MAX_ITEMS = 50
 
 /* ============================================

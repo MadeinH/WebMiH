@@ -20,8 +20,6 @@ function safeEqual(left: string, right: string): boolean {
 }
 
 export const ADMIN_SESSION_COOKIE_NAME = 'mih_admin_session'
-const DEFAULT_DEV_USER = 'admin'
-const DEFAULT_DEV_PASSWORD = 'admin123'
 const DEFAULT_SESSION_TTL_HOURS = 12
 
 function encodeBase64Url(value: string): string {
@@ -49,10 +47,9 @@ function getSessionTtlMs(): number {
 }
 
 function getAdminCredentials(): { username?: string; password?: string } {
-  const isDev = process.env.NODE_ENV !== 'production'
   return {
-    username: process.env.ADMIN_USER ?? (isDev ? DEFAULT_DEV_USER : undefined),
-    password: process.env.ADMIN_PASSWORD ?? (isDev ? DEFAULT_DEV_PASSWORD : undefined),
+    username: process.env.ADMIN_USER,
+    password: process.env.ADMIN_PASSWORD,
   }
 }
 

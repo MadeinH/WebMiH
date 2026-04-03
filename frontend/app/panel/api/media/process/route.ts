@@ -20,12 +20,16 @@ export async function POST(request: Request) {
 
   const path = String(body.path ?? '')
   if (!path) return NextResponse.json({ error: 'Falta path' }, { status: 400 })
+  const safePath = path.replace(/[^a-zA-Z0-9/_\-.]/g, '')
+  if (!safePath || !['panel/', 'catalog/', 'accessories/'].some((prefix) => safePath.startsWith(prefix))) {
+    return NextResponse.json({ error: 'Path inválido' }, { status: 400 })
+  }
 
   try {
     const supabase = createServerClient()
     const bucket = process.env.SUPABASE_CMS_BUCKET || DEFAULT_BUCKET
 
-    const downloaded = await supabase.storage.from(bucket).download(path)
+    const downloaded = await supabase.storage.from(bucket).download(safePath)
     if (downloaded.error || !downloaded.data) {
       return NextResponse.json({ error: downloaded.error?.message ?? 'No encontrado' }, { status: 404 })
     }
@@ -37,7 +41,7 @@ export async function POST(request: Request) {
     const mime = (await sharp(buffer).metadata()).format
     if (!mime) return NextResponse.json({ error: 'Formato no soportado' }, { status: 415 })
 
-    const baseId = path.replace(/\.[^.]+$/, '')
+    const baseId = safePath.replace(/\.[^.]+$/, '')
     const webpPath = `${baseId}.webp`
     const thumbPath = `${baseId}-thumb.webp`
 
@@ -52,14 +56,14 @@ export async function POST(request: Request) {
     if (up2.error) return NextResponse.json({ error: up2.error.message }, { status: 500 })
 
     const urls: Record<string, string> = {}
-    urls.original = supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl
+    urls.original = supabase.storage.from(bucket).getPublicUrl(safePath).data.publicUrl
     urls.webp = supabase.storage.from(bucket).getPublicUrl(webpPath).data.publicUrl
     urls.thumb = supabase.storage.from(bucket).getPublicUrl(thumbPath).data.publicUrl
 
-    return NextResponse.json({ urls, paths: [path, webpPath, thumbPath] })
+    return NextResponse.json({ urls, paths: [safePath, webpPath, thumbPath] })
   } catch (err: any) {
     // eslint-disable-next-line no-console
     console.error(err)
-    return NextResponse.json({ error: String(err) }, { status: 500 })
+    return NextResponse.json({ error: 'No se pudo procesar el archivo' }, { status: 500 })
   }
 }

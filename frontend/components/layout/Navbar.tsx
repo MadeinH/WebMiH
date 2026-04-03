@@ -11,6 +11,7 @@ const navItems = [
   { href: '/catalogo',       label: 'Catálogo' },
   { href: '/accesorios',     label: 'Accesorios' },
   { href: '/personalizacion', label: 'Personalización' },
+  { href: '/carrito',        label: 'Carrito' },
   { href: '/cotizacion',     label: 'Cotización' },
 ]
 

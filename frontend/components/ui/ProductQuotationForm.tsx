@@ -30,6 +30,21 @@ export default function ProductQuotationForm({ producto }: ProductQuotationFormP
   const [tecnicaSeleccionada, setTecnicaSeleccionada] = useState('')
   const [added, setAdded] = useState(false)
 
+  function getUnitPrice(): number {
+    if (isAccessory && selectedVariant && Array.isArray(producto.variants)) {
+      const variantPrice = producto.variants.find((variant) => variant.label === selectedVariant)?.price
+      return typeof variantPrice === 'number' ? variantPrice : 0
+    }
+
+    if (cantidad >= 12 && typeof producto.priceMatrix.mayoreo12 === 'number') return producto.priceMatrix.mayoreo12
+    if (cantidad >= 6 && typeof producto.priceMatrix.mayoreo6 === 'number') return producto.priceMatrix.mayoreo6
+    if (cantidad >= 3 && typeof producto.priceMatrix.mayoreo3 === 'number') return producto.priceMatrix.mayoreo3
+
+    if (typeof producto.priceMatrix.detalCarta === 'number') return producto.priceMatrix.detalCarta
+    if (typeof producto.priceMatrix.detalEstandar === 'number') return producto.priceMatrix.detalEstandar
+    return 0
+  }
+
   function materialPermiteSublimacion(materialText: string): boolean {
     const value = materialText.toLowerCase()
     return (
@@ -96,6 +111,10 @@ export default function ProductQuotationForm({ producto }: ProductQuotationFormP
       nombre: producto.nombre,
       variantes: partes.join(' | '),
       cantidad,
+      precioUnitario: getUnitPrice(),
+      soloWhatsApp: producto.soloCotizar,
+      slug: producto.slug,
+      imagenUrl: producto.imagenUrl ?? undefined,
     }
 
     addItem(item)
@@ -241,7 +260,7 @@ export default function ProductQuotationForm({ producto }: ProductQuotationFormP
           onClick={handleAddToCart}
           className="w-full"
         >
-          {added ? '✓ ¡Agregado a la cotización!' : 'Agregar al carrito de cotización'}
+          {added ? 'Agregado a la cotización' : 'Agregar al carrito de cotización'}
         </CTAButton>
         <CTAButton
           variant="whatsapp"

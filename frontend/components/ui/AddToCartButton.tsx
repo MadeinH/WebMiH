@@ -64,7 +64,7 @@ export default function AddToCartButton({ productoId, nombre, material }: AddToC
         onClick={handleAdd}
         className="w-full"
       >
-        {added ? '✓ ¡Agregado a la cotización!' : 'Agregar a cotización'}
+        {added ? 'Agregado a la cotización' : 'Agregar a cotización'}
       </CTAButton>
     </div>
   )

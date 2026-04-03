@@ -19,6 +19,8 @@ export type SecurityEventType =
   | 'API_ERROR'
   | 'ACCESS_DENIED'
   | 'COTIZACION_SUCCESS'
+  | 'CHECKOUT_CREATED'
+  | 'PAYMENT_WEBHOOK_SUCCESS'
 
 interface SecurityEvent {
   type: SecurityEventType
