@@ -8,3 +8,5 @@
 - En producción, no deben existir credenciales admin por defecto en código; siempre inyectar por entorno.
 - Evitar definir CSP en dos capas (middleware + next.config) para no abrir huecos por políticas inconsistentes.
 - Las auditorías de cierre deben repetirse tras cada bloque de fixes para validar regresiones de seguridad.
+- Para una reformulación visual útil, empezar por layout, navbar, hero y tarjetas compartidas antes de tocar páginas aisladas.
+- Las superficies decorativas deben usar tokens existentes y fondos simples; las clases arbitrarias complejas de fondo son más frágiles en build.
